@@ -24,29 +24,38 @@ int main(int argc, char *argv[])
     }
     config = llegirFitxer(argv[1]);
     while(!opcio){
+        printa("\n$ ");
         input = readUntil(FD_READER, '\n');
         n_espais = prepareData(input, option);
-        /*printa("\nInput: --");
+        printa("\nInput: --");
         printa(input);
         printa("--\n");
 
         printa("\nOption: ");
         printa(option);
-        printa("\nEspais: "); 
-        printaInt(n_espais);*/
+        printa("\nEspais: ");
         if(myStrcmp(option, CONNECT) == 1){               //CONNECT
             printa("\nEntra en Connect\n");
         }else if(myStrcmp(option, LOGOUT) == 1){           //LOGOUT
             printa("\nEntra en Logout\n");
             opcio = 1; 
-        }else if(myStrcmp(option, LIST) == 1 && n_espais == 1){            //LIST
+        }else if(myStrcmp(option, LIST) == 1 && n_espais >= 1){            //LIST
             printa("\nEntra en List\n"); 
-        }else if(myStrcmp(option, DOWNLOAD) == 1 && n_espais == 1){            //DOWNLOAD
+        }else if(myStrcmp(option, DOWNLOAD) == 1 && n_espais >= 1){            //DOWNLOAD
             printa("\nEntra en Download\n"); 
-        }else if(myStrcmp(option, CHECK) == 1 && (myStrcmp(input, DOWNLOADS) == 1)){            //CHECK DOWNLOADS
-            checkDownloads(n_espais, option, input);
-        }else if(myStrcmp(option, CLEAR) == 1 && (myStrcmp(input, DOWNLOADS) == 1)){            //CLEAR DOWNLOADS
-            clearDownloads(n_espais, option, input);
+        }else if(myStrcmp(option, CHECK) == 1 && n_espais >= 1){            //CHECK DOWNLOADS
+            if((myStrcmp(input, DOWNLOADS) == 1)){
+                checkDownloads(n_espais, option, input);
+            }else{
+                printa("Comanda KO. Quizás querias decir Downloads?\n");
+            }
+        }else if(myStrcmp(option, CLEAR) == 1 && n_espais >= 1){        //CLEAR DOWNLOADS
+            if(myStrcmp(input, DOWNLOADS) == 1){
+                    clearDownloads(n_espais, option, input);
+            }else{
+                printa("Comanda KO. Quizás querias decir Downloads?\n");
+            }          
+            
         }else{
             printa("Comanda KO. Comanda no correcte\n");
         }

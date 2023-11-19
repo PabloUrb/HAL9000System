@@ -86,6 +86,14 @@ int extreuCadena (char * origen, int posicio, char limit, char option[MAX_INPUT]
     posicio++;
     return posicio;
 }
+void remove_spaces(char* s) {
+    char* d = s;
+    do {
+        while (*d == ' ') {
+            ++d;
+        }
+    } while ((*s++ = *d++)!= '\0');
+}
 
 int prepareData(char * input, char option[MAX_INPUT]){
     int n_espais = 0;
@@ -96,7 +104,6 @@ int prepareData(char * input, char option[MAX_INPUT]){
     for (int i = 0; input[i] != '\0'; ++i) {
         if(input[i] == ' ') n_espais++;
     }
-    
     if(n_espais == 0){
         memset(option, '\0', sizeof(&option));
         for (int i = 0; i < myStrlen(input); i++) {
@@ -114,11 +121,14 @@ int prepareData(char * input, char option[MAX_INPUT]){
         }
 
     }
-    //printa("\nInput: ");
-    //printa(input);
-    //printa("\nOption: ");
-    //printa(option);
-    //printa("\n");
+    printa("\nInput prepareData: ");
+    printa(input);
+    remove_spaces(input);
+    printa("\nInput prepareData: ");
+    printa(input);
+    printa("\nOption: ");
+    printa(option);
+    printa("\n");
     return n_espais;
 }
 int myStrcmp(char * cad1, char * cad2){
