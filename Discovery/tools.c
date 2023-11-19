@@ -16,28 +16,6 @@ char *read_until(int fd, char delimiter){
 
     return msg;
 }
-char* readUntil(int fd, char del){
-    char* cadena;
-    cadena = (char*) malloc(sizeof(char));
-    char aux; 
-    int n;
-    int i=0;
-    
-    n=read(fd,&aux,1);
-    while (aux != del && n != 0){
-        cadena[i] = aux;
-        i++;
-        cadena = (char *)realloc(cadena, i+1);
-        n = read(fd, &aux, 1);
-    }
-    cadena[i]= '\0';
-    return cadena;
-}
-
-void printa(char * cadena){
-    write(1, cadena, myStrlen(cadena));
-}
-
 int myStrlen(char * cadena){
     int i = 0;
     while(cadena[i] != '\0'){
@@ -45,7 +23,6 @@ int myStrlen(char * cadena){
     }
     return i;
 }
-
 int myAtoi(char * cadena){
     int retorn = 0;
     int i = 0;
@@ -55,18 +32,13 @@ int myAtoi(char * cadena){
     }
     return retorn;
 }
-
-void freeAllMem(Config * config){
-    free(config->nom_carpeta);
-    free(config->ipServer);
-    free(config->nom);
-    free(config);
-
-
-    close(0);
-    close(1);
-    close(2);
-    close(3);
+void printa(char * cadena){
+    write(1, cadena, myStrlen(cadena));
+}
+void printaInt(int i){
+    char aux[10];
+    sprintf(aux, "\nInt: %d\n\n", i);
+    printa(aux);
 }
 void myToLowerCase(char * input){
     for(int i = 0; i < myStrlen(input); i++){
@@ -86,27 +58,19 @@ int extreuCadena (char * origen, int posicio, char limit, char option[MAX_INPUT]
     posicio++;
     return posicio;
 }
-void remove_spaces(char* s) {
-    char* d = s;
-    do {
-        while (*d == ' ') {
-            ++d;
-        }
-    } while ((*s++ = *d++)!= '\0');
-}
-
 int prepareData(char * input, char option[MAX_INPUT]){
     int n_espais = 0;
     int index = 0;
 
     myToLowerCase(input);
-    
+
     for (int i = 0; input[i] != '\0'; ++i) {
         if(input[i] == ' ') n_espais++;
     }
+
+    memset(option, '\0', sizeof(&option));
     if(n_espais == 0){
-        memset(option, '\0', sizeof(&option));
-        for (int i = 0; i < myStrlen(input); i++) {
+        for (int i = 0; i < myStrlen(input); ++i) {
             option[i] = input[i];
         }
 
@@ -121,14 +85,6 @@ int prepareData(char * input, char option[MAX_INPUT]){
         }
 
     }
-    printa("\nInput prepareData: ");
-    printa(input);
-    remove_spaces(input);
-    printa("\nInput prepareData: ");
-    printa(input);
-    printa("\nOption: ");
-    printa(option);
-    printa("\n");
     return n_espais;
 }
 int myStrcmp(char * cad1, char * cad2){
@@ -137,18 +93,19 @@ int myStrcmp(char * cad1, char * cad2){
     }
     return 1;
 }
-int myStrcasecmp(char * cad1, char * cad2){
-    myToLowerCase(cad1);
-    myToLowerCase(cad2);
-    return myStrcmp(cad1, cad2);
-}
-void printaInt(int i){
-    char aux[10];
-    sprintf(aux, "\nInt: %d\n\n", i);
-    printa(aux);
-}
+void freeAllMem(Config * config){
+    free(config->ipServerPoole);
+    free(config->ipServerBowman);
+    free(config);
 
-Config *llegirFitxerBowman(char * fileConfig){
+
+    close(0);
+    close(1);
+    close(2);
+    close(3);
+    close(4);
+}
+Config *llegirFitxer(char * fileConfig){
     Config * config = (Config *)malloc(sizeof (Config));
     char * aux;
     char printaC[80];
@@ -158,20 +115,21 @@ Config *llegirFitxerBowman(char * fileConfig){
 		perror("ERROR2: File descriptor\n");
 	}
 
-    config->nom = read_until(fd_file, '\n');
-
-    config->nom_carpeta = read_until(fd_file, '\n');
-
-    config->ipServer = read_until(fd_file, '\n');
+    config->ipServerPoole = read_until(fd_file, '\n');
 
     aux = read_until(fd_file, '\n');
-    config->port = myAtoi(aux);
+    config->portPoole = myAtoi(aux);
     free(aux);
 
-    sprintf(printaC, "\n%s user initialized\n\n", config->nom);
-    printa(printaC);
+    config->ipServerBowman= read_until(fd_file, '\n');
 
-    sprintf(printaC, "Usuario: %s\nNom Carpeta: %s\nIP Server: %s\nPort: %d\n\n", config->nom, config->nom_carpeta, config->ipServer, config->port);
+    aux = read_until(fd_file, '\n');
+    config->portBowman = myAtoi(aux);
+    free(aux);
+
+    sprintf(printaC, "IP Server Poole: %s\nPort Poole: %d\n", config->ipServerPoole, config->portPoole);
+    printa(printaC);
+    sprintf(printaC, "IP Server Bowman: %s\nPort Bowman: %d\n\n", config->ipServerBowman, config->portBowman);
     printa(printaC);
 
     close(fd_file);

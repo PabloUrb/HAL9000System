@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
         perror("ERROR1: Input invalid\n");
         return 0;
     }
-    config = llegirFitxer(argv[1]);
+    config = llegirFitxerBowman(argv[1]);
     while(!opcio){
         printa("\n$ ");
         input = readUntil(FD_READER, '\n');

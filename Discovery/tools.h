@@ -1,8 +1,7 @@
 #ifndef _tools_h_
 #define _tools_h_
 
-#include "bowman.h"
-#include "mainFunctions.h"
+#include "discovery.h"
 
 #include <sys/types.h>
 #include <pthread.h>
@@ -20,21 +19,20 @@
 
 typedef struct
 {
-    char * nom;
-    char *nom_carpeta;
-    char *ipServer;
-    int port;
+    char *ipServerPoole;
+    int portPoole;
+    char *ipServerBowman;
+    int portBowman;
 } Config;
 
 char *read_until(int fd, char delimiter);
-char *readUntil(int fd, char delimiter);
 void printa(char * cadena);
 void printaInt(int i);
+Config *llegirFitxer(char * fileConfig);
+void freeAllMem(Config * config);
 int myStrlen(char * cadena);
 int myStrcmp(char * cad1, char * cad2);
-int myStrcasecmp(char * cad1, char * cad2);
-void freeAllMem(Config * config);
-Config *llegirFitxerBowman(char * fileConfig);
 int prepareData(char * input, char option[MAX_INPUT]);
-
+int extreuCadena (char * origen, int posicio, char limit, char option[MAX_INPUT]);
+void myToLowerCase(char * input);
 #endif
