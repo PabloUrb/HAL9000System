@@ -3,14 +3,21 @@
 #define MAX_CHAR 50
 
 Config *config;
+pthread_t thread_pare;
 
 void intHandler(){
     freeAllMem(config);
     raise(SIGKILL);
 }
+static void *threadFunc (void *arg){
+    char *s = (char *) arg;
+    printf ("%s", s);
+    return (void *) strlen (s);
+}
 
 int main(int argc, char *argv[]){
-    int opcio = 0;
+    void *res;
+    int s;
 
     signal(SIGINT, intHandler);
 
@@ -26,9 +33,16 @@ int main(int argc, char *argv[]){
         perror("ERROR2: Input invalid\n");
         return 0;
     }
-    while(!opcio){
+    
+    s = pthread_create (&thread_pare, NULL, threadFunc, "Hello world\n");
+    if (s != 0) printa("Error thread not created");
+    printf ("Missatge des del main()\n");
 
-    }
+    launch_server(config->portPoole, config->ipServerPoole, int * socket_fd);
+
+    pthread_join (thread_pare,&res);
+    printf ("Thread retorna %ld\n", (long)res);
+
     freeAllMem(config);
     exit(0);
 }
