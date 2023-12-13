@@ -13,6 +13,9 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>
+#include <netdb.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -23,6 +26,6 @@
 
 void initSockets();
 
-int launch_server(int port, char * ip, int * socket_fd);
+int launch_server(int port, char * ip);
 
 #endif

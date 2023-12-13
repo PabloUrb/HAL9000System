@@ -14,6 +14,11 @@
 #include <signal.h>
 #include <time.h>
 #include <dirent.h>
+#include <strings.h>
+#include <sys/time.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #define FD_READER 0
 #define FD_SPEAKER 1

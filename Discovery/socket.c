@@ -1,30 +1,59 @@
 #include "socket.h"
 
+int sockfd, newsockfd;
+
 void initSockets(){
     printa("Init Sockets\n");
 }
 
-int launch_server(int port, char * ip, int * socket_fd) {
-    struct sockaddr_in s_addr;
+void intHandler2(){
+    printa("Sigint\n");
+    close(newsockfd);
+    close(sockfd);
+    raise(SIGKILL);
+}
 
-    *socket_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+int launch_server(int port, char * ip) {
+    
+    struct sockaddr_in serv_addr, cli_addr;
+    socklen_t clilen;
 
-    if (*socket_fd < 0) {
+    signal(SIGINT, intHandler2);
+
+    sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (sockfd < 0) {
         printa("Error creant el socket\n");
         return -1;
     }
 
-    bzero(&s_addr, sizeof (s_addr));
-    s_addr.sin_family = AF_INET;
-    s_addr.sin_port = htons (port);
-    s_addr.sin_addr.s_addr = inet_addr(ip);
-    if (bind (*socket_fd, (void *) &s_addr, sizeof (s_addr)) < 0) {
-        printa("Error fent el bind\n");
-        return -1;
-    }
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+        
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr = inet_addr(ip);
+        serv_addr.sin_port = htons(port);
+        
+        if (bind(sockfd, (struct sockaddr *) &serv_addr,
+                 sizeof(serv_addr)) < 0){
+            perror("ERROR on binding");
+            return 2;
+        }
 
-    if(listen(*socket_fd, 10) < 0){
+    if(listen(sockfd, 10) < 0){
         printa("Error fent el listen\n");
+    }else{
+        clilen = sizeof(cli_addr);
+        while (1)
+        {
+            printa("Esperant nova conexio...\n");
+            newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+            if(newsockfd<0){
+                printa("ERROR on accept");
+            }
+            printa("Nova connexio entrant\n");
+            write(newsockfd, "eres tonto\n", myStrlen("eres tonto\n"));
+        }
+        
     }
     return 0;
 }

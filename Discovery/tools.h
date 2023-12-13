@@ -2,6 +2,7 @@
 #define _tools_h_
 
 #include "discovery.h"
+#include "socket.h"
 
 #include <sys/types.h>
 #include <pthread.h>

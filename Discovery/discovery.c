@@ -1,4 +1,6 @@
+#define _POSIX_C_SOURCE 200809L
 #include "discovery.h"
+#include "socket.h"
 
 #define MAX_CHAR 50
 
@@ -6,6 +8,10 @@ Config *config;
 pthread_t thread_pare;
 
 void intHandler(){
+    void * res;
+    printa("Sigint\n");
+    pthread_kill(thread_pare, 9);
+    pthread_join (thread_pare,&res);
     freeAllMem(config);
     raise(SIGKILL);
 }
@@ -38,7 +44,7 @@ int main(int argc, char *argv[]){
     if (s != 0) printa("Error thread not created");
     printf ("Missatge des del main()\n");
 
-    launch_server(config->portPoole, config->ipServerPoole, int * socket_fd);
+    launch_server(config->portPoole, config->ipServerPoole);
 
     pthread_join (thread_pare,&res);
     printf ("Thread retorna %ld\n", (long)res);
