@@ -14,6 +14,7 @@ int main(int argc, char *argv[]){
     int socketFD;
     struct sockaddr_in servidor;
     char op[MAX_CHAR];
+    long nRead;
 
     signal(SIGINT, intHandler);
 
@@ -45,10 +46,10 @@ int main(int argc, char *argv[]){
     if(connect(socketFD, (struct sockaddr*) &servidor, sizeof(servidor)) < 0){
         printF("Error fent el connect\n");
     }
-    op[0]='a';
         while(op[0]!='\0' && strcmp(&op[0],"KO\n")!=0){
-            read(socketFD,op,3);
-            write(1,op,3);
+            nRead = read(socketFD,op,sizeof(op));
+            op[nRead-1] = '\0';
+            write(1,op,strlen(op));
             //valor = passwordManager(socketFD);
         }
 

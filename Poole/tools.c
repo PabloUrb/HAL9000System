@@ -138,9 +138,6 @@ Config *llegirFitxer(char * fileConfig){
     config->portPoole = myAtoi(aux);
     free(aux);
 
-    sprintf(printaC, "\n%s user initialized\n\n", config->nomServidor);
-    printa(printaC);
-
     sprintf(printaC, "Usuario: %s\nNom Carpeta: %s\n", config->nomServidor, config->nom_carpeta);
     printa(printaC);
 
