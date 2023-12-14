@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     config = llegirFitxerBowman(argv[1]);
-    while(!opcio){
+    while(!opcio){ 
         printa("\n$ ");
         input = readUntil(FD_READER, '\n');
         n_espais = prepareData(input, option);
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
         printa(option);
         printa("\nEspais: ");
         if(myStrcmp(option, CONNECT) == 1){               //CONNECT
-            printa("\nEntra en Connect\n");
+            connectServer(config);
         }else if(myStrcmp(option, LOGOUT) == 1){           //LOGOUT
             printa("\nEntra en Logout\n");
             opcio = 1; 

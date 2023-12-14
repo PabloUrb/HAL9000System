@@ -1,35 +1,16 @@
-#include "poole.h"
+#include "socket.h"
 
 #define MAX_CHAR 50
 #define printF(x) write(1, x, strlen(x))
 
-Config *config;
+extern Config *config;
 
-void intHandler(){
-    freeAllMem(config);
-    raise(SIGKILL);
-}
+void create_connection(){
 
-int main(int argc, char *argv[]){
     int socketFD;
     struct sockaddr_in servidor;
     char op[MAX_CHAR];
     long nRead;
-
-    signal(SIGINT, intHandler);
-
-    if (argc != 2)
-    {
-        perror("ERROR1: Input invalid\n");
-        return 0;
-    }
-    config = llegirFitxer(argv[1]);
-    
-    if (config == NULL)
-    {
-        perror("ERROR2: Input invalid\n");
-        return 0;
-    }
 
     if( (socketFD = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         printF("Error creant el socket\n");
@@ -37,9 +18,9 @@ int main(int argc, char *argv[]){
 
     bzero(&servidor, sizeof(servidor));
     servidor.sin_family = AF_INET;
-    servidor.sin_port = htons(config->portDiscovery);
+    servidor.sin_port = htons(config->port);
 
-    if(inet_pton(AF_INET, config->ipServerDiscovery, &servidor.sin_addr) < 0){
+    if(inet_pton(AF_INET, config->ipServer, &servidor.sin_addr) < 0){
         printF("Error configurant IP\n");
     }
 
@@ -53,6 +34,4 @@ int main(int argc, char *argv[]){
             //valor = passwordManager(socketFD);
         }
     }
-    freeAllMem(config);
-    exit(0);
 }

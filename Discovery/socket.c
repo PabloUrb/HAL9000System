@@ -20,7 +20,7 @@ int launch_server(int port, char * ip) {
 
     signal(SIGINT, intHandler2);
 
-    sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd < 0) {
         printa("Error creant el socket\n");

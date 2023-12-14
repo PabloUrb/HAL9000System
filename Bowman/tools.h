@@ -3,6 +3,7 @@
 
 #include "bowman.h"
 #include "mainFunctions.h"
+#include "socket.h"
 
 #include <sys/types.h>
 #include <pthread.h>
