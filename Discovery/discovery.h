@@ -3,6 +3,7 @@
 
 #include "tools.h"
 #include "socket.h"
+#include "../defines.h"
 
 #include <sys/types.h>
 #include <pthread.h>
@@ -16,8 +17,4 @@
 #include <time.h>
 #include <dirent.h>
 
-#define FD_READER 0
-#define FD_SPEAKER 1
-
-#define CONNECT "connect\0"
 #endif

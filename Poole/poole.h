@@ -2,6 +2,7 @@
 #define _poole_h_
 
 #include "tools.h"
+#include "../defines.h"
 
 #include <sys/types.h>
 #include <pthread.h>
@@ -20,8 +21,4 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#define FD_READER 0
-#define FD_SPEAKER 1
-
-#define CONNECT "connect\0"
 #endif

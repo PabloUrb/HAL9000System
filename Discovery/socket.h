@@ -3,6 +3,7 @@
 
 #include "discovery.h"
 #include "tools.h"
+#include "../defines.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>

@@ -2,6 +2,7 @@
 #define _tools_h_
 
 #include "poole.h"
+#include "../defines.h"
 
 #include <sys/types.h>
 #include <pthread.h>
@@ -14,8 +15,6 @@
 #include <signal.h>
 #include <time.h>
 #include <dirent.h>
-
-#define MAX_INPUT 100
 
 typedef struct
 {
