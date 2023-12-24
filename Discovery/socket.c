@@ -8,6 +8,7 @@ typedef struct{
     uint16_t header_length;
     char * header;
     char * data;
+    int contador;
 }Trama;
 //array de tramas
 Trama * tramas;
@@ -18,15 +19,15 @@ void initSockets(){
 }
 
 void intHandler2(){
-    printa("Sigint\n");
-    //write(newsockfd, "KO\n", myStrlen("KO\n"));
+    printa(SIGINT);
     shutdown(newsockfd, SHUT_RDWR);
     shutdown(sockfd, SHUT_RDWR);
     raise(SIGKILL);
 }
 
 
-void reciveTrama(){
+int reciveTrama(){
+    int response = 0;
     printa("Recive Trama\n");
     unsigned char trama[256];
     read(newsockfd, trama, 256);
@@ -36,6 +37,7 @@ void reciveTrama(){
     printa("\n\n");
     if(sizeof(trama)==256){
         Trama trama1;
+        trama1.contador = 0;
         trama1.type = trama[0];
         trama1.header_length = (trama[1] << (8*1)) + trama[2];
         trama1.header = (char*)malloc(sizeof(char)*trama1.header_length);
@@ -56,6 +58,7 @@ void reciveTrama(){
         printa("Data: ");
         printa(trama1.data);
         printa("\n");
+        printf("Contador: %d\n", trama1.contador);
         
         //añadir trama en la siguente posicion del array de tramas
         printf("NumTramas: %d\n", numTramas);
@@ -67,14 +70,16 @@ void reciveTrama(){
         
         
         printf("Size of tramas: %lu\n", sizeof(tramas));
+        printf("data de la trama: %s\n", tramas[numTramas-1].data);
         printa("\n");
+        response = 1;
         
         free(trama1.header);
         free(trama1.data);
+    }else{
+        printa(ERR_TRAMA_SIZE);
     }
-    
-    
-    
+    return response;
 }
 
 int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
@@ -86,7 +91,7 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     tramas = (Trama*)malloc(sizeof(Trama)*100);
     if (sockfd < 0) {
-        printa("Error creant el socket\n");
+        printa(ERR_SOCKET);
         return -1;
     }
 
@@ -98,37 +103,38 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
         
         if (bind(sockfd, (struct sockaddr *) &serv_addr,
                  sizeof(serv_addr)) < 0){
-            perror("ERROR on binding");
+            perror(ERR_BIND);
             return 2;
         }
 
     if(listen(sockfd, 10) < 0){
-        printa("Error fent el listen\n");
+        printa(ERR_LISTEN);
     }else{
         clilen = sizeof(cli_addr);
         while (1)
         {
             
-            printa("Esperant nova conexio...\n");
+            printa(WAITING_CONNECTIONS);
             newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
             if(newsockfd<0){
-                printa("ERROR on accept");
-                return 3;
+                printa(ERR_ACCEPT);
+                return 0;
             }
 
             if(port == configDiscovery->portPoole){
-                printa("Nova connexio Poole entrant\n");
-                reciveTrama();
-                printa("Envia KO\n"); 
-                write(newsockfd, "KO\n", myStrlen("KO\n"));
+                printa(NEW_POOLE_CONNECTION);
+                if(reciveTrama()==1){
+                    write(newsockfd, OK, myStrlen(OK));
+                }else{
+                    write(newsockfd, KO, myStrlen(KO));
+                }
+                
             }else if(port == configDiscovery->portBowman){
-                printa("Nova connexio Bowman entrant\n");
-                //write(newsockfd, "eres tonto2\n", myStrlen("eres tonto2\n"));
+                printa(NEW_BOWMAN_CONNECTION);
             }else{
-                printa("ERROR: Input invalid\n");
+                printa(ERR_INVALID_INPUT);
                 return 0;
             }
-            printa("Connexio cerrada\n");
             close(newsockfd);
         }
         
