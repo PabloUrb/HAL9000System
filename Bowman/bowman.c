@@ -2,10 +2,10 @@
 
 #define MAX_CHAR 50
 
-Config *config;
+ConfigBowman *configBowman;
 
 void intHandler(){
-    freeAllMem(config);
+    freeAllMemBowman(configBowman);
     raise(SIGKILL);
 }
 
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
         perror("ERROR1: Input invalid\n");
         return 0;
     }
-    config = llegirFitxerBowman(argv[1]);
+    configBowman = llegirFitxerBowman(argv[1]);
     while(!opcio){ 
         printa("\n$ ");
         input = readUntil(FD_READER, '\n');
@@ -35,7 +35,8 @@ int main(int argc, char *argv[])
         printa(option);
         printa("\nEspais: ");
         if(myStrcmp(option, CONNECT) == 1){               //CONNECT
-            connectServer(config);
+            //connectServer(config);
+            connectServer(configBowman);
         }else if(myStrcmp(option, LOGOUT) == 1){           //LOGOUT
             printa("\nEntra en Logout\n");
             opcio = 1; 
@@ -61,6 +62,6 @@ int main(int argc, char *argv[])
         }
         free(input);
     }
-    freeAllMem(config);
+    freeAllMemBowman(configBowman);
     exit(0);
 }

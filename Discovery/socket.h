@@ -2,7 +2,7 @@
 #define _socket_h_
 
 #include "discovery.h"
-#include "tools.h"
+#include "../tools.h"
 #include "../defines.h"
 
 #include <arpa/inet.h>
@@ -27,6 +27,6 @@
 
 void initSockets();
 
-int launch_server(int port, char * ip);
+int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery);
 
 #endif

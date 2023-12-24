@@ -1,8 +1,9 @@
 #ifndef _poole_h_
 #define _poole_h_
 
-#include "tools.h"
+
 #include "../defines.h"
+#include "../tools.h"
 
 #include <sys/types.h>
 #include <pthread.h>

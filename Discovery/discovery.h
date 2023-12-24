@@ -1,9 +1,9 @@
 #ifndef _discovery_h_
 #define _discovery_h_
 
-#include "tools.h"
-#include "socket.h"
 #include "../defines.h"
+#include "socket.h"
+#include "../tools.h"
 
 #include <sys/types.h>
 #include <pthread.h>

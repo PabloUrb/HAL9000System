@@ -1,9 +1,8 @@
 #ifndef _socket_h_
 #define _socket_h_
 
-#include "bowman.h"
-#include "mainFunctions.h"
-#include "tools.h"
+#include "../tools.h"
+
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -25,6 +24,6 @@
 #include <time.h>
 #include <dirent.h>
 
-void create_connection();
+void create_connection(ConfigBowman * configBowman);
 
 #endif

@@ -1,8 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "discovery.h"
-#include "socket.h"
 
-Config *config;
+ConfigDiscovery *configDiscovery;
 pthread_t thread1, thread2;
 
 
@@ -11,16 +10,17 @@ void intHandler(){
     //cerrar threads
     close(thread1);
     close(thread2);
-    freeAllMem(config);
+    //liberar memoria
+    freeAllMemDiscovery(configDiscovery);
     raise(SIGKILL);
 }
 void *threadFunc (void *arg){
     int i = (uintptr_t)arg;
     printaInt(i);
     if(i==1){
-        launch_server(config->portPoole, config->ipServerPoole);
+        launch_server(configDiscovery->portPoole, configDiscovery->ipServerPoole, configDiscovery);
     }else if(i==2){
-        launch_server(config->portBowman, config->ipServerBowman);
+        launch_server(configDiscovery->portBowman, configDiscovery->ipServerBowman, configDiscovery);
     }else{
         printa("ERROR: Input invalid\n");
         return NULL;
@@ -35,9 +35,9 @@ int main(int argc, char *argv[]){
         perror("ERROR1: Input invalid\n");
         return 0;
     }
-    config = llegirFitxer(argv[1]);
+    configDiscovery = llegirFitxerDiscovery(argv[1]);
     
-    if(config == NULL){
+    if(configDiscovery == NULL){
         perror("ERROR2: Input invalid\n");
         return 0;
     }
@@ -71,6 +71,6 @@ int main(int argc, char *argv[]){
     free(res);
     close(thread1);
     close(thread2);
-    freeAllMem(config);
+    freeAllMemDiscovery(configDiscovery);
     exit(0);
 }

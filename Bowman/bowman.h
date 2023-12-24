@@ -1,9 +1,8 @@
 #ifndef _bowman_h_
 #define _bowman_h_
 
-#include "tools.h"
 #include "mainFunctions.h"
-#include "socket.h"
+#include "../tools.h"
 
 #include <sys/types.h>
 #include <pthread.h>
