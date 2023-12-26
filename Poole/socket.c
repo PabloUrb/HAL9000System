@@ -2,6 +2,27 @@
 int socketFD;
 struct sockaddr_in servidor;
 
+int reciveTrama(unsigned char * trama){
+    int response = 0;
+    unsigned char op [256];
+    read(socketFD, op, 256);
+        printf("Response size: %lu\n", sizeof(op));
+        if(sizeof(op)==256){
+            uint8_t type = trama[0];
+            uint16_t header_length = (trama[1] << (8*1)) + trama[2];
+            char * header = (char*)malloc(sizeof(char)*header_length);
+            memcpy(header, &trama[3], header_length);
+
+            printf("Type: %d\n", type);
+            printf("Header Length: %d\n", header_length);
+            printf("Header: %s\n", header);
+            response = 1;
+        }else{
+            printF(ERR_RECIVE);
+        }
+    return response;
+}
+
 unsigned char* generateTrama(char * header, ConfigPoole *configPoole){
     unsigned char* trama = (unsigned char*)malloc(sizeof(unsigned char)*256);
     trama[0] = 0x01;
@@ -28,7 +49,7 @@ unsigned char* generateTrama(char * header, ConfigPoole *configPoole){
 }
 
 int launch_server(ConfigPoole * configPoole){
-    char op[MAX_INPUT];
+    
     char buffer[MAX_INPUT];
     int response = 0;
 
@@ -53,12 +74,13 @@ int launch_server(ConfigPoole * configPoole){
         if(write(socketFD, trama, 256)<0){
             printF(ERR_SEND);
         }
-        read(socketFD, op, MAX_INPUT);
-        while(op[0]!='\0' && strcmp(&op[0],"KO")!=0){
-            printa("LLEGA\n");
+        if(reciveTrama(trama)==1){
+            printF("OK\n");
             response = 1;
-            op[0]='\0';
+        }else{
+            printF(ERR_COMUNICATION);
         }
+        
     }
     close(socketFD);
 

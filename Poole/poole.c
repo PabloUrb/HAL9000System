@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
         return 0;
     }
     int initsocket = launch_server(configPoole);
-    printf("\ninitsocket: %d\n", initsocket);
+    printf("\ninit Discovery: %d\n", initsocket);
     
     freeAllMemPoole(configPoole);
     exit(0);

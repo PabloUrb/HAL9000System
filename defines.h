@@ -4,7 +4,7 @@
 #define READING_FILE "Reading configuration file"
 #define WAITING_CONNECTIONS "Waiting for connections..."
 #define ERR_INVALID_INPUT "ERROR: Input invalid\n"
-#define SIGINT "SIGINT received\n"
+#define SIGINT1 "SIGINT received\n"
 
 #define FD_READER 0
 #define FD_SPEAKER 1
@@ -21,8 +21,10 @@
 #define ERR_CONNECT "Error fent el connect\n"
 #define ERR_ACCEPT "Error fent el accept\n"
 #define WAITING_CONNECTIONS "Waiting for connections..."
-#define NEW_BOWMAN_CONNECTION "New Bowman connection entering\n"
-#define NEW_POOLE_CONNECTION "New Poole connection entering\n"
+#define NEW_BOWMAN_CONNECTION "\nNew Bowman connection entering\n"
+#define NEW_POOLE_CONNECTION "\nNew Poole connection entering\n"
+#define ERR_RECIVE "Error fent el recive\n"
+#define ERR_COMUNICATION "Error en la comunicació\n"
 
 //Tramas
 #define ERR_TRAMA "Error en la trama\n"

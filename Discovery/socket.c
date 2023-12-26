@@ -8,7 +8,6 @@ typedef struct{
     uint16_t header_length;
     char * header;
     char * data;
-    int contador;
 }Trama;
 //array de tramas
 Trama * tramas;
@@ -19,10 +18,25 @@ void initSockets(){
 }
 
 void intHandler2(){
-    printa(SIGINT);
+    printa(SIGINT1);
     shutdown(newsockfd, SHUT_RDWR);
     shutdown(sockfd, SHUT_RDWR);
     raise(SIGKILL);
+}
+unsigned char* generateTrama(char * header){
+    unsigned char* trama = (unsigned char*)malloc(sizeof(unsigned char)*256);
+    trama[0] = 0x01;
+    uint16_t size = strlen(header);
+    trama[1] = (size >> (8*1)) & 0xff;
+    trama[2] = (size >> (8*0)) & 0xff;
+    strcpy((char*) &trama[3], header);
+    bzero(&trama[3+size], 256-3-size);
+
+    printF("\nTrama enviada\n");
+    printf("Type: %d\n", trama[0]);
+    printf("Header Length: %d%d\n", trama[1], trama[2]);
+    printf("Header: %s\n", &trama[3]);
+    return trama;
 }
 
 
@@ -37,7 +51,6 @@ int reciveTrama(){
     printa("\n\n");
     if(sizeof(trama)==256){
         Trama trama1;
-        trama1.contador = 0;
         trama1.type = trama[0];
         trama1.header_length = (trama[1] << (8*1)) + trama[2];
         trama1.header = (char*)malloc(sizeof(char)*trama1.header_length);
@@ -58,7 +71,6 @@ int reciveTrama(){
         printa("Data: ");
         printa(trama1.data);
         printa("\n");
-        printf("Contador: %d\n", trama1.contador);
         
         //añadir trama en la siguente posicion del array de tramas
         printf("NumTramas: %d\n", numTramas);
@@ -86,6 +98,7 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
     
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t clilen;
+    unsigned char* response;
 
     signal(SIGINT, intHandler2);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -125,8 +138,12 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
                 printa(NEW_POOLE_CONNECTION);
                 if(reciveTrama()==1){
                     write(newsockfd, OK, myStrlen(OK));
+                    response = generateTrama(CON_OK);
+                    write(newsockfd, response, 256);
                 }else{
                     write(newsockfd, KO, myStrlen(KO));
+                    response = generateTrama(CON_KO);
+                    write(newsockfd, response, 256);
                 }
                 
             }else if(port == configDiscovery->portBowman){
