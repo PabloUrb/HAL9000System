@@ -22,8 +22,12 @@ int main(int argc, char *argv[]){
         perror("ERROR2: Input invalid\n");
         return 0;
     }
-    int initsocket = launch_server(configPoole);
-    printf("\ninit Discovery: %d\n", initsocket);
+    if(launch_server(configPoole)==1){
+        printF(CONNECTED);
+    }else{
+        printF(ERR_COMUNICATION);
+    }
+    
     
     freeAllMemPoole(configPoole);
     exit(0);

@@ -28,4 +28,6 @@
 #define CLEAR "clear\0"
 #define DOWNLOADS "downloads\0"
 
+void intHandler();
+
 #endif

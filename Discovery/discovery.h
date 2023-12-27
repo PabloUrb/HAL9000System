@@ -17,4 +17,6 @@
 #include <time.h>
 #include <dirent.h>
 
+void intHandler();
+
 #endif

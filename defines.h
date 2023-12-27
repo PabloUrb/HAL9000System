@@ -12,6 +12,9 @@
 
 #define printF(x) write(1, x, strlen(x))
 
+//Poole
+#define CONNECTED "Connected to HAL 9000 System, ready to listen to Bowmans petitions\n"
+
 //Sockets
 #define ERR_SEND "Error fent el send\n"
 #define ERR_BIND "Error fent el bind\n"

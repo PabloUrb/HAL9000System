@@ -2,6 +2,7 @@
 #define _socket_h_
 
 #include "../tools.h"
+#include "bowman.h"
 
 
 #include <arpa/inet.h>

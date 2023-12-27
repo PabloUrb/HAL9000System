@@ -6,17 +6,15 @@ int reciveTrama(unsigned char * trama){
     int response = 0;
     unsigned char op [256];
     read(socketFD, op, 256);
-        printf("Response size: %lu\n", sizeof(op));
         if(sizeof(op)==256){
-            uint8_t type = trama[0];
             uint16_t header_length = (trama[1] << (8*1)) + trama[2];
             char * header = (char*)malloc(sizeof(char)*header_length);
             memcpy(header, &trama[3], header_length);
-
-            printf("Type: %d\n", type);
-            printf("Header Length: %d\n", header_length);
-            printf("Header: %s\n", header);
-            response = 1;
+            if(strcmp(header, CON_OK)){
+                response = 1;
+            }else{
+                printF(ERR_RECIVE);
+            }
         }else{
             printF(ERR_RECIVE);
         }
@@ -75,10 +73,7 @@ int launch_server(ConfigPoole * configPoole){
             printF(ERR_SEND);
         }
         if(reciveTrama(trama)==1){
-            printF("OK\n");
             response = 1;
-        }else{
-            printF(ERR_COMUNICATION);
         }
         
     }

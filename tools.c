@@ -166,7 +166,7 @@ ConfigBowman *llegirFitxerBowman(char * fileConfig){
     config->ipServer = read_until(fd_file, '\n');
 
     aux = read_until(fd_file, '\n');
-    config->port = myAtoi(aux);
+    config->port = atoi(aux);
     free(aux);
 
     sprintf(printaC, "\n%s user initialized\n\n", config->nom);
