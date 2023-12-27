@@ -97,31 +97,37 @@ int reciveTrama(int newsockfd){
         trama1.header = (char*)malloc(sizeof(char)*trama1.header_length);
         memcpy(trama1.header, &trama[3], trama1.header_length);
         
-        trama1.data = (char*)malloc(sizeof(char)*(256-trama1.header_length-3));
-        memcpy(trama1.data, &trama[3+trama1.header_length], 256-trama1.header_length-3);
-        
-        
-
-        printf("Type: %d\n", trama1.type);
-        printf("Header Length: %u\n", (unsigned int)trama1.header_length);
         printf("Header: %s\n", trama1.header);
-        printf("Data: %s\n", trama1.data);
-        printf("Contador: %d\n", trama1.contador);
-        
-        //añadir trama en la siguente posicion del array de tramas
-        printf("NumTramas: %d\n", numTramas);
-        if(numTramas == 0){
-            tramas = (Trama*)malloc(sizeof(Trama));
+        if(strcmp(trama1.header, NEW_BOWMAN)!=0){
+            trama1.data = (char*)malloc(sizeof(char)*(256-trama1.header_length-3));
+            memcpy(trama1.data, &trama[3+trama1.header_length], 256-trama1.header_length-3);
+            
+            
+
+            printf("Type: %d\n", trama1.type);
+            printf("Header Length: %u\n", (unsigned int)trama1.header_length);
+            printf("Header: %s\n", trama1.header);
+            printf("Data: %s\n", trama1.data);
+            printf("Contador: %d\n", trama1.contador);
+            
+            //añadir trama en la siguente posicion del array de tramas
+            printf("NumTramas: %d\n", numTramas);
+            if(numTramas == 0){
+                tramas = (Trama*)malloc(sizeof(Trama));
+            }else{
+                tramas = (Trama*)realloc(tramas, sizeof(Trama)*(numTramas+1));
+            }
+            tramas[numTramas] = trama1;
+            printf("Size of tramas: %lu\n", sizeof(tramas));
+            printf("header de la trama: %s\n", tramas[numTramas].header);
+            printf("data de la trama: %s\n", tramas[numTramas].data);
+            numTramas++;
+            
+            printa("\n");
         }else{
-            tramas = (Trama*)realloc(tramas, sizeof(Trama)*(numTramas+1));
+            free(trama1.header);
         }
-        tramas[numTramas] = trama1;
-        printf("Size of tramas: %lu\n", sizeof(tramas));
-        printf("header de la trama: %s\n", tramas[numTramas].header);
-        printf("data de la trama: %s\n", tramas[numTramas].data);
-        numTramas++;
         
-        printa("\n");
         response = 1;
         
     }else{
@@ -202,16 +208,22 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
                 }
             }else if(port == configDiscovery->portBowman){
                 printa(NEW_BOWMAN_CONNECTION);
-                //write(newsockfd, "KO\n", sizeof("KO\n"));
-                //free(response);
-                Trama trama = getMinUsersConnected();
-                if(trama.data!=NULL){
-                    response = generateTrama(CON_OK, trama.data);
-                    write(newsockfd, response, 256);
+                if(reciveTrama(newsockfd)==1){
+                    Trama trama = getMinUsersConnected();
+                    if(trama.data!=NULL){
+                        response = generateTrama(CON_OK, trama.data);
+                        write(newsockfd, response, 256);
+                    }else{
+                        printa("este");
+                        response = generateTrama(CON_KO, NULL);
+                        write(newsockfd, response, 256);
+                    }
                 }else{
-                    response = generateTrama(CON_KO, trama.data);
+                    printa("O este");
+                    response = generateTrama(CON_KO, NULL);
                     write(newsockfd, response, 256);
                 }
+                
                 free(response);
             }else{
                 printa(ERR_INVALID_INPUT);

@@ -12,6 +12,25 @@ void intHandler2(){
     //raise(SIGKILL);
 }
 
+unsigned char* generateTrama(char * header, ConfigBowman *configBowman){
+    unsigned char* trama = (unsigned char*)malloc(sizeof(unsigned char)*256);
+    trama[0] = 0x01;
+    uint16_t size = strlen(header);
+    trama[1] = (size >> (8*1)) & 0xff;
+    trama[2] = (size >> (8*0)) & 0xff;
+    strcpy((char*) &trama[3], header);
+
+    char * data = (char*)malloc(sizeof(char)*256-3-size);
+    strcpy(data, configBowman->nom);
+    int sizeData = strlen(data);
+    //add data to trama
+    memcpy(&trama[3+size], data, sizeData);
+    //rellenar lo que falta de data con 0
+    bzero(&trama[3+size+sizeData], 256-3-size-sizeData);
+    
+    return trama;
+}
+
 int reciveTrama(unsigned char * trama, int socketFD){
     int response = 0;
     unsigned char op [256];
@@ -56,6 +75,11 @@ void create_connection(ConfigBowman * configBowman){
     if(connect(socketFD, (struct sockaddr*) &servidor, sizeof(servidor)) < 0){
         printF("Error fent el connect\n");
     }else{
+        //envia trama a Discovery
+        unsigned char* trama = generateTrama(NEW_BOWMAN, configBowman);
+        write(socketFD, trama, 256);
+
+        //lee la trama desde Discovery
         unsigned char op [256];
         read(socketFD, op, 256);
         printf("sizeof op: %lu\n", sizeof(op));
