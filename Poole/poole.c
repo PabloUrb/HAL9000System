@@ -22,8 +22,9 @@ int main(int argc, char *argv[]){
         perror("ERROR2: Input invalid\n");
         return 0;
     }
-    if(launch_server(configPoole)==1){
+    if(launch_server(configPoole, 0)==1){
         printF(CONNECTED);
+        launch_Poole(configPoole);
     }else{
         printF(ERR_COMUNICATION);
     }

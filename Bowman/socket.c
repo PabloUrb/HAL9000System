@@ -53,6 +53,66 @@ int reciveTrama(unsigned char * trama, int socketFD){
         }
     return response;
 }
+void connect_Poole(char * data, ConfigBowman * configBowman){
+    struct sockaddr_in servidor;
+
+    signal(SIGINT, intHandler2);
+
+    char * nom = strtok(data, "&");
+    char * ip = strtok(NULL, "&");
+    char * port = strtok(NULL, "&");
+
+    if(ip!=NULL && port != NULL){
+        printf("\n====================\n");
+        printf("Enviado a Poole\n");
+        printf("nom: %s\n", nom);
+        printf("ip: %s\n", ip);
+        printf("port: %s\n", port);
+
+        if( (socketFD = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+            printF(ERR_SOCKET);
+        }
+
+        bzero(&servidor, sizeof(servidor));
+        servidor.sin_family = AF_INET;
+        servidor.sin_port = htons(atoi(port));
+        if(inet_pton(AF_INET, ip, &servidor.sin_addr) < 0){
+            printF(ERR_CONFIG_IP);
+        }
+
+        if(connect(socketFD, (struct sockaddr*) &servidor, sizeof(servidor)) < 0){
+            printF(ERR_CONNECT);
+        }else{
+            //envia trama a Poole
+            unsigned char* trama = generateTrama(NEW_BOWMAN, configBowman);
+            write(socketFD, trama, 256);
+
+            //lee la trama desde Poole
+            unsigned char op [256];
+            read(socketFD, op, 256);
+            printf("sizeof op: %lu\n", sizeof(op));
+            if(sizeof(op)==256){
+                uint16_t header_length = (op[1] << (8*1)) + op[2];
+                char * header = (char*)malloc(sizeof(char)*header_length);
+                memcpy(header, &op[3], header_length);
+                char * data = (char*)malloc(sizeof(char)*(256-header_length-3));
+                memcpy(data, &op[3+header_length], 256-header_length-3);
+                
+                printF("\nTrama recibida\n");
+                printf("Header Length: %u\n", header_length);
+                printf("Header: %s\n", header);
+                printf("Data: %s\n", data);
+            }else{
+                printF(ERR_RECIVE);
+            }
+            
+            
+            close(socketFD);
+        }
+    }else{
+        printF(ERR_RECIVE);
+    }
+}
 
 void create_connection(ConfigBowman * configBowman){
 
@@ -94,6 +154,7 @@ void create_connection(ConfigBowman * configBowman){
             printf("Header Length: %u\n", header_length);
             printf("Header: %s\n", header);
             printf("Data: %s\n", data);
+            connect_Poole(data, configBowman);
         }else{
             printF(ERR_RECIVE);
         }

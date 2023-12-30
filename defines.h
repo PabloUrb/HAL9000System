@@ -9,6 +9,10 @@
 #define FD_READER 0
 #define FD_SPEAKER 1
 #define MAX_INPUT 100
+#define MAXEVENTS 64
+#define BACKLOG 200
+#define NI_MAXHOST      1025
+#define NI_MAXSERV      32
 
 #define printF(x) write(1, x, strlen(x))
 
@@ -53,6 +57,7 @@
 #define CONOK "CONOK"
 #define CONKO "CONKO"
 #define UNKNOWN "UNKNOWN"
+#define DISCONECT "DISCONECT"
 #define OK "OK\n"
 #define KO "KO\n"
 
