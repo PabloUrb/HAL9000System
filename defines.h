@@ -6,11 +6,12 @@
 #define ERR_INVALID_INPUT "ERROR: Input invalid\n"
 #define SIGINT1 "SIGINT received\n"
 
-#define FD_READER 0
-#define FD_SPEAKER 1
-#define MAX_INPUT 100
-#define MAXEVENTS 64
-#define BACKLOG 200
+#define FD_READER       0
+#define FD_SPEAKER      1
+#define MAX_INPUT       200
+#define MAXEVENTS       100
+#define MAX_CONN        26
+#define BACKLOG         200
 #define NI_MAXHOST      1025
 #define NI_MAXSERV      32
 

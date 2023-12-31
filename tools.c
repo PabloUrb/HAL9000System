@@ -152,7 +152,7 @@ void freeAllMemBowman(ConfigBowman * configBowman){
 ConfigBowman *llegirFitxerBowman(char * fileConfig){
     ConfigBowman * config = (ConfigBowman *)malloc(sizeof (ConfigBowman));
     char * aux;
-    char printaC[80];
+    char printaC[100];
 
 	int fd_file = open(fileConfig, O_RDONLY);
 	if(fd_file < 0){
@@ -169,7 +169,7 @@ ConfigBowman *llegirFitxerBowman(char * fileConfig){
     config->port = atoi(aux);
     free(aux);
 
-    sprintf(printaC, "\n%s user initialized\n\n", config->nom);
+    sprintf(printaC, "\n %s user initialized\n\n", config->nom);
     printa(printaC);
 
     sprintf(printaC, "Usuario: %s\nNom Carpeta: %s\nIP Server: %s\nPort: %d\n\n", config->nom, config->nom_carpeta, config->ipServer, config->port);

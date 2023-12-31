@@ -11,6 +11,13 @@ void intHandler2(){
     intHandler();
     //raise(SIGKILL);
 }
+void printMenu(){
+    printF("\n====================\n");
+    printF("2. LIST SONGS\n");
+    printF("3. LIST PLAYLIST\n");
+    printF("4. LOGOUT\n");
+    printF("Choose an option: ");
+}
 
 unsigned char* generateTrama(char * header, ConfigBowman *configBowman){
     unsigned char* trama = (unsigned char*)malloc(sizeof(unsigned char)*256);
@@ -107,7 +114,7 @@ void connect_Poole(char * data, ConfigBowman * configBowman){
             }
             
             
-            close(socketFD);
+            //close(socketFD);
         }
     }else{
         printF(ERR_RECIVE);
@@ -155,11 +162,33 @@ void create_connection(ConfigBowman * configBowman){
             printf("Header: %s\n", header);
             printf("Data: %s\n", data);
             connect_Poole(data, configBowman);
+            if(strcmp(header, CON_OK) != 0){
+                perror("Error en la conexion\n");
+                raise(SIGKILL);
+            }
+            int opcio = 0;
+            char *input;
+            int n_espais = 0;
+            char option[MAX_INPUT];
+            while(!opcio){
+                printMenu();
+                input = readUntil(FD_READER, '\n');
+                n_espais = prepareData(input, option);
+                printa("\nInput: --");
+                printa(input);
+                printa("--\n");
+                printa("\nOption: ");
+                printa(option);
+                printa("\nEspais: ");
+                printf("%d\n", n_espais);
+                if(myStrcmp(option, LOGOUT) == 1){           //LOGOUT
+                    printa("\nEntra en Logout\n");
+                    opcio = 1; 
+                }
+            }
         }else{
             printF(ERR_RECIVE);
         }
-        
-        
         close(socketFD);
     }
 }

@@ -3,13 +3,7 @@
 
 int sockfdCopy[2], newsockfdCopy[2];
 
-typedef struct{
-    uint8_t type;
-    uint16_t header_length;
-    char * header;
-    char * data;
-    int contador;
-}Trama;
+
 //array de tramas
 Trama * tramas;
 int numTramas;

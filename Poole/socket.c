@@ -3,6 +3,7 @@
 
 int socketFD;
 struct sockaddr_in servidor;
+struct epoll_event events[MAXEVENTS];
 extern ConfigPoole *configPoole;
 
 
@@ -53,12 +54,43 @@ unsigned char* generateTrama(char * header, ConfigPoole *configPoole){
         bzero(&trama[3+size], 256-3-size);
     }
     
-    
     return trama;
 }
 
+unsigned char* reciveTramaPoole(char trama[256]){
+    printa("Recive Trama\n");
+    unsigned char* trama2 = (unsigned char*)malloc(sizeof(unsigned char)*256);
+
+    printa("\n");
+        Trama trama1;
+        trama1.contador = 0;
+        trama1.type = trama[0];
+        trama1.data = malloc(sizeof(char)*256);
+        trama1.header_length = (trama[1] << (8*1)) + trama[2];
+        trama1.header = (char*)malloc(sizeof(char)*trama1.header_length);
+        memcpy(trama1.header, &trama[3], trama1.header_length);
+        
+        printf("Type: %d\n", trama1.type);
+        printf("Header Length: %u\n", (unsigned int)trama1.header_length);
+        printf("Header: %s\n", trama1.header);
+        
+        if(strcmp(trama1.header, NEW_BOWMAN)==0){
+            trama2 = generateTrama(CON_OK, NULL);
+            return trama2;
+        }
+        bzero(trama, 256);
+        bzero(trama2, 256);
+        free(trama1.data);
+        free(trama1.header);
+
+    return trama2;
+}
+
+
+
 void intHandler2(){
     launch_server(configPoole, 1);
+    for(;;){close(events[0].data.fd);}
     close(socketFD);
     intHandler();
 }
@@ -106,223 +138,111 @@ int launch_server(ConfigPoole * configPoole, int flag){
 
     return response;
 }
-static int make_socket_non_blocking (int sfd){
-    int flags, s;
-    
-    flags = fcntl (sfd, F_GETFL, 0);
-    if (flags == -1)
-        {
-        perror ("fcntl");
-        return -1;
-        }
-
-    flags |= O_NONBLOCK;
-    s = fcntl (sfd, F_SETFL, flags);
-    if (s == -1)
-        {
-        perror ("fcntl");
-        return -1;
-        }
-
-    return 0;
+static void epoll_ctl_add(int epfd, int fd, uint32_t events)
+{
+	struct epoll_event ev;
+	ev.events = events;
+	ev.data.fd = fd;
+	if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
+		perror("epoll_ctl()\n");
+		exit(1);
+	}
 }
-static int create_and_bind (char * port){
-    struct addrinfo hints;
-    struct addrinfo *result, *rp;
-    int s, sfd;
 
-    memset (&hints, 0, sizeof (struct addrinfo));
-    hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
-    hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
-    hints.ai_flags = AI_PASSIVE;     /* All interfaces */
-
-    s = getaddrinfo (NULL, port, &hints, &result);
-    if (s != 0)
-        {
-        fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (s));
-        return -1;
-        }
-
-    for (rp = result; rp != NULL; rp = rp->ai_next)
-        {
-        sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sfd == -1)
-            continue;
-
-        s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
-        if (s == 0)
-            {
-            /* We managed to bind successfully! */
-            break;
-            }
-
-        close (sfd);
-        }
-
-    if (rp == NULL)
-        {
-        fprintf (stderr, "Could not bind\n");
-        return -1;
-        }
-
-    freeaddrinfo (result);
-
-    return sfd;
+static void set_sockaddr(struct sockaddr_in *addr, int port)
+{
+	bzero((char *)addr, sizeof(struct sockaddr_in));
+	addr->sin_family = AF_INET;
+	addr->sin_addr.s_addr = INADDR_ANY;
+	addr->sin_port = htons(port);
 }
+
+static int setnonblocking(int sockfd)
+{
+	if (fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) ==
+	    -1) {
+		return -1;
+	}
+	return 0;
+}
+
 void launch_Poole(ConfigPoole *configPoole){
-    int sfd, s;
-    int efd;
-    struct epoll_event event;
-    struct epoll_event *events;
+    int i;
+	int n;
+	int epfd;
+	int nfds;
+	int listen_sock;
+	int conn_sock;
+	socklen_t  socklen;
+	char buf[256];
+	struct sockaddr_in srv_addr;
+	struct sockaddr_in cli_addr;
+	
 
-    signal(SIGINT, intHandler2);
+	listen_sock = socket(AF_INET, SOCK_STREAM, 0);
 
     char * test = (char*)malloc(sizeof(char)*4);
     sprintf(test,"%d",configPoole->portPoole);
 
-    sfd = create_and_bind (test);
-    if(sfd == -1){
-        abort();
-    }
+	set_sockaddr(&srv_addr, atoi(test));
+	bind(listen_sock, (struct sockaddr *)&srv_addr, sizeof(srv_addr));
 
-    s = make_socket_non_blocking(sfd);
-    if(s == -1){
-        abort();
-    }
+	setnonblocking(listen_sock);
+	listen(listen_sock, MAX_CONN);
 
-    s = listen(sfd, BACKLOG);
-    if(s == -1){
-        perror("listen");
-        abort();
-    }
-    signal(SIGINT, intHandler2);
-    printf("server: waiting for connections...\n");
+	epfd = epoll_create(1);
+	epoll_ctl_add(epfd, listen_sock, EPOLLIN | EPOLLOUT | EPOLLET);
 
-    efd = epoll_create1(0);
-    if(efd == -1){
-        perror("epoll_create");
-        abort();
-    }
+	socklen = sizeof(cli_addr);
+	for (;;) {
+		nfds = epoll_wait(epfd, events, MAXEVENTS, -1);
+		for (i = 0; i < nfds; i++) {
+			if (events[i].data.fd == listen_sock) {
+				/* handle new connection */
+				conn_sock =
+				    accept(listen_sock,(struct sockaddr *) &cli_addr, &socklen);
 
-    event.data.fd = sfd;
-    event.events = EPOLLIN | EPOLLET;
-    s = epoll_ctl(efd, EPOLL_CTL_ADD, sfd, &event);
-    if(s == -1){
-        perror("epoll_ctl");
-        abort();
-    }
+				inet_ntop(AF_INET, (char *)&(cli_addr.sin_addr),
+					  buf, sizeof(cli_addr));
+				printf("[+] connected with %s:%d\n", buf,
+				       ntohs(cli_addr.sin_port));
 
-    /* Buffer where events are returned */
-    events = calloc (MAXEVENTS, sizeof event);
-
-    /* The event loop */
-    while (1){
-        int n, i;
-
-        n = epoll_wait (efd, events, MAXEVENTS, -1);
-        for (i = 0; i < n; i++)
-        {
-            if((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN))){
-                /* An error has occured on this fd, or the socket is not
-                ready for reading (why were we notified then?) */
-                fprintf (stderr, "epoll error\n");
-                close (events[i].data.fd);
-                continue;
-            }else if(sfd == events[i].data.fd){
-                /* We have a notification on the listening socket, which
-                means one or more incoming connections. */
-                while (1){
-                    struct sockaddr in_addr;
-                    socklen_t in_len;
-                    int infd;
-                    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-
-                    in_len = sizeof in_addr;
-                    infd = accept (sfd, &in_addr, &in_len);
-                    if (infd == -1){
-                        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)){
-                            /* We have processed all incoming
-                            connections. */
-                            break;
-                        }else{
-                            perror ("accept");
-                            break;
+				setnonblocking(conn_sock);
+				epoll_ctl_add(epfd, conn_sock,
+					      EPOLLIN | EPOLLET | EPOLLRDHUP |
+					      EPOLLHUP);
+			} else if (events[i].events & EPOLLIN) {
+				/* handle EPOLLIN event */
+				while(1) {
+					bzero(buf, sizeof(buf));
+					n = read(events[i].data.fd, buf, sizeof(buf));
+					if (n <= 0 ) {
+						break;
+					} else {
+						printf("[+] data: %s\n", buf);
+                        reciveTramaPoole(buf);
+                        unsigned char* trama2 = generateTrama(CON_OK, NULL);
+                        if(write(events[i].data.fd, trama2, 256)<0){
+                            printF(ERR_SEND);
                         }
-                    }
-
-                    s = getnameinfo (&in_addr, in_len,
-                                    hbuf, sizeof hbuf,
-                                    sbuf, sizeof sbuf,
-                                    NI_NUMERICHOST | NI_NUMERICSERV);
-                    if (s == 0){
-                        printf("Accepted connection on descriptor %d "
-                                "(host=%s, port=%s)\n", infd, hbuf, sbuf);
-                    }
-
-                    /* Make the incoming socket non-blocking and add it to the
-                    list of fds to monitor. */
-                    s = make_socket_non_blocking (infd);
-                    if (s == -1)
-                        abort ();
-
-                    event.data.fd = infd;
-                    event.events = EPOLLIN | EPOLLET;
-                    s = epoll_ctl (efd, EPOLL_CTL_ADD, infd, &event);
-                    if (s == -1){
-                        perror ("epoll_ctl");
-                        abort ();
-                    }
+					}
+                    /*n = reciveTramaPoole(events[i].data.fd);
+                    if(n == 1){
+                        printf("Trama enviada\n");
+                    }*/
                 }
-                continue;
-            }else{
-                /* We have data on the fd waiting to be read. Read and
-                display it. We must read whatever data is available
-                completely, as we are running in edge-triggered mode
-                and won't get a notification again for the same
-                data. */
-                int done = 0;
-
-                while (1){
-                    ssize_t count;
-                    char buf[512];
-
-                    count = read (events[i].data.fd, buf, sizeof buf);
-                    if (count == -1){
-                        /* If errno == EAGAIN, that means we have read all
-                        data. So go back to the main loop. */
-                        if (errno != EAGAIN){
-                            perror ("read");
-                            done = 1;
-                        }
-                        break;
-                    }else if (count == 0){
-                        /* End of file. The remote has closed the
-                        connection. */
-                        done = 1;
-                        break;
-                    }
-
-                    /* Write the buffer to standard output */
-                    s = write (1, buf, count);
-                    if (s == -1){
-                        perror ("write");
-                        abort ();
-                    }
-                }
-
-                if (done){
-                    printf ("Closed connection on descriptor %d\n",
-                            events[i].data.fd);
-
-                    /* Closing the descriptor will make epoll remove it
-                    from the set of descriptors which are monitored. */
-                    close (events[i].data.fd);
-                }
-            }
-        }
-        
-    }
-    free(events);
-    close(sfd);
+			} else {
+				printf("[+] unexpected\n");
+			}
+			/* check if the connection is closing */
+			if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
+				printf("[+] connection closed\n");
+				epoll_ctl(epfd, EPOLL_CTL_DEL,
+					  events[i].data.fd, NULL);
+				close(events[i].data.fd);
+				continue;
+			}
+		}
+	}
     
 }

@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
+#include <stdint.h>
+#include <sys/socket.h>
 #include <dirent.h>
 
 
@@ -41,7 +43,13 @@ typedef struct
     
 } ConfigPoole;
 
-
+typedef struct{
+    uint8_t type;
+    uint16_t header_length;
+    char * header;
+    char * data;
+    int contador;
+}Trama;
 
 
 char *read_until(int fd, char delimiter);
