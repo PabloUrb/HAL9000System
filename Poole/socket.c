@@ -77,6 +77,14 @@ unsigned char* reciveTramaPoole(char trama[256]){
         if(strcmp(trama1.header, NEW_BOWMAN)==0){
             trama2 = generateTrama(CON_OK, NULL);
             return trama2;
+        }else if(strcmp(trama1.header, LIST_SONGS)==0){
+            trama2 = generateTrama(CON_OK, NULL);
+            return trama2;
+        }else if(strcmp(trama1.header, LIST_PLAYLISTS)==0){
+            trama2 = generateTrama(CON_OK, NULL);
+            return trama2;
+        }else{
+            printF(ERR_TRAMA_HEADER);
         }
         bzero(trama, 256);
         bzero(trama2, 256);

@@ -181,9 +181,15 @@ void create_connection(ConfigBowman * configBowman){
                 printa(option);
                 printa("\nEspais: ");
                 printf("%d\n", n_espais);
-                if(myStrcmp(option, LOGOUT) == 1){           //LOGOUT
+                if(strcmp(option, LOGOUT) == 0){           //LOGOUT
                     printa("\nEntra en Logout\n");
                     opcio = 1; 
+                }else if(strcmp(option, LIST) == 0 && n_espais >= 1 && strcmp(input, SONGS)==0){            //LIST
+                    printa("\nEntra en List Songs\n");
+                }else if(strcmp(option, LIST) == 0 && n_espais >= 1 && strcmp(input, PLAYLIST)==0){            //LIST
+                    printa("\nEntra en List Playlists\n");
+                }else{
+                    perror(ERR_INPUT);
                 }
             }
         }else{

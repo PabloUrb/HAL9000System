@@ -5,6 +5,9 @@
 #define WAITING_CONNECTIONS "Waiting for connections..."
 #define ERR_INVALID_INPUT "ERROR: Input invalid\n"
 #define SIGINT1 "SIGINT received\n"
+#define ERR_INPUT "ERROR: Input invalid\n"
+#define SONGS "songs"
+#define PLAYLIST "playlist"
 
 #define FD_READER       0
 #define FD_SPEAKER      1
