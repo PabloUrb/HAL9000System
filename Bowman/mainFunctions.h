@@ -5,7 +5,7 @@
 #include "../tools.h"
 
 void initMainFunctions();
-void connectServer(ConfigBowman * configBowman);
+int connectServer(ConfigBowman * configBowman);
 void checkDownloads();
 void clearDownloads();
 

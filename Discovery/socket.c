@@ -29,15 +29,15 @@ void shutdown_Poole(int port){
         char * nom;
         char * ip;
         char * port2;
-        for(int i = 0; tramas[i].data != NULL; i++){
-            char * temp1 = (char*)malloc(sizeof((char *)tramas[i].data));
-            memcpy(temp1, &tramas[i].data, sizeof(tramas[i].data));
+        for(int i = 0; tramas!=NULL && tramas[i].data != NULL && tramas[i].header_length!=0; i++){
+            char * temp1 = (char*)malloc(sizeof(char) * (strlen(tramas[i].data)+1));
+            strcpy(temp1, tramas[i].data);
             nom = strtok(temp1, "&");
             ip = strtok(NULL, "&");
             port2 = strtok(NULL, "&");
 
             printf("\n====================\n");
-            printf("Enviado a Poole\n");
+            printf("Datos de Poole\n");
             printf("nom: %s\n", nom);
             printf("ip: %s\n", ip);
             printf("i: %d\n", i);
@@ -46,25 +46,71 @@ void shutdown_Poole(int port){
             printf("port 2: %s\n", port2);
             printf("\n====================\n");
             if(port2 != NULL && atoi(port2) == port){
-                tramas = (Trama*)realloc(tramas, sizeof(Trama)*(numTramas+1));
-                tramas[i] = tramas[i+1];
-            }if(numTramas == 1){
-                //free(tramas);
+                //tramas = (Trama*)realloc(tramas, sizeof(Trama)*(numTramas+1));
+                //tramas[i] = tramas[i+100];
+                free(tramas[i].data);
+                free(tramas[i].header);
+                i++;
+                tramas[i-1] = tramas[i];
+                tramas = (Trama*)realloc(tramas, sizeof(Trama)*(numTramas));
+            }
+            if(numTramas == 0){
+                //memset(tramas, 0, sizeof(Trama));
+            }
+            numTramas--;
+            free(temp1);
+        }
+        
+    }
+}
+void disconnectionBowman(char * port){
+    if(tramas!=NULL){
+        char * nom;
+        char * ip;
+        char * port2;
+        char * temp1;
+        for(int i = 0; tramas[i].header_length!=0 && tramas[i].data != NULL; i++){
+            temp1 = (char*)malloc(sizeof(char) * (strlen(tramas[i].data)+1));
+            strcpy(temp1, tramas[i].data);
+            nom = strtok(temp1, "&");
+            ip = strtok(NULL, "&");
+            port2 = strtok(NULL, "&");
+
+            printf("\n====================\n");
+            printf("Enviado a Bowman\n");
+            printf("nom: %s\n", nom);
+            printf("ip: %s\n", ip);
+            printf("i: %d\n", i);
+            printf("numTramas: %d\n", numTramas);
+            printf("port 1: %s\n", port);
+            printf("port 2: %s\n", port2);
+            printf("\n====================\n");
+            if(port2 != NULL || atoi(port2) == atoi(port)){
+                tramas[i].contador = tramas[i].contador - 1;
+                printf("contador: %d\n", tramas[i].contador);
             }
             free(temp1);
         }
-        numTramas--;
     }
+}
+void printraTramas(){
+    if(tramas!=NULL){
+        for(int i = 0; tramas[i].data != NULL && tramas[i].header_length!=0; i++){
+            printf("HEADER DE LA TRAMA: %s\n", tramas[i].header);
+            printf("DATA DE LA TRAMA: %s\n", tramas[i].data);
+        }
+    }
+
 }
 Trama getMinUsersConnected(){
     Trama minTrama;
     int min = 1000;
-    int cont = 0;
+    //int cont = 0;
     printa("\n");
     printa("\n");
     printa("\n");
     if(tramas!=NULL){
-        for(int i = 0; tramas[i].data != NULL; i++){
+        for(int i = 0; tramas[i].header_length!=0 && tramas[i].data != NULL; i++){
             printf("contador de la trama %d: %d\n", i, tramas[i].contador);
             if(tramas[i].contador <= min){
                 min = tramas[i].contador;
@@ -72,17 +118,15 @@ Trama getMinUsersConnected(){
             
         }
         printf("\n\nMIN: %d\n\n", min);
-        for(int i = 0; tramas[i].data != NULL; i++){
-            printf("\ncontador de la trama %d: %d\n", i, tramas[i].contador);
-            if(tramas[i].contador == min && cont == 0){
-                printf("trama data: %s\n", tramas[i].data);
-                minTrama = tramas[i];
+        for(int i = 0; tramas[i].header_length!=0 && tramas[i].data != NULL; i++){
+            if(tramas[i].contador == min){
+                printf("data de la trama %d: %s\n", i, tramas[i].data);
+                minTrama.data = tramas[i].data;
                 tramas[i].contador++;
-                cont++;
+                //cont++;
             }
+            printf("contador de la trama %d: %d\n", i, tramas[i].contador);
         }
-    }else{
-        minTrama.data = NULL;
     }
     return minTrama;
 }
@@ -96,7 +140,7 @@ unsigned char* generateTrama(char * header, char * data){
     strcpy((char*) &trama[3], header);
     if(data != NULL){
         char * data2 = (char*)malloc(sizeof(char)*256-3-size);
-        strcat(data2, data);
+        data2 = data;
         int sizeData = strlen(data2);
         //add data to trama
         memcpy(&trama[3+size], data2, sizeData);
@@ -119,9 +163,10 @@ int validatePortPoole(int port){
         char * nom;
         char * ip;
         char * port2;
-        for(int i = 0; tramas[i].data != NULL; i++){
-            char * temp2 = (char*)malloc(sizeof((char *)tramas[i].data));
-            memcpy(temp2, &tramas[i].data, sizeof(tramas[i].data));
+        for(int i = 0; tramas[i].header_length!=0 && tramas[i].data != NULL; i++){
+            char * temp2 = (char*)malloc(sizeof(char) * (strlen(tramas[i].data)+1));
+            //temp2 = tramas[i].data;
+            strcpy(temp2, tramas[i].data);
             nom = strtok(temp2, "&");
             ip = strtok(NULL, "&");
             port2 = strtok(NULL, "&");
@@ -197,14 +242,11 @@ int reciveTrama(int newsockfd){
                 printf("Data 2: %s\n", trama1.data);
                 tramas[numTramas] = trama1;
                 printf("Size of tramas: %lu\n", sizeof(tramas));
-                printf("header de la trama: %s\n", tramas[numTramas].header);
-                printf("data de la trama: %s\n", tramas[numTramas].data);
                 numTramas++;
-                
             }
             free(temp3);
             printa("\n");
-        }else if(strcmp(trama1.header, DISCONECT)==0){
+        }else if(strcmp(trama1.header, DISCONECT_POOLE)==0){
             trama1.data = (char*)malloc(sizeof(char)*(256-trama1.header_length-3));
             memcpy(trama1.data, &trama[3+trama1.header_length], 256-trama1.header_length-3);
             char * nom = strtok(trama1.data, "&");
@@ -214,6 +256,14 @@ int reciveTrama(int newsockfd){
             printf("ip: %s\n", ip);
             printf("port: %s\n", port2);
             shutdown_Poole(atoi(port2));
+            return 2;
+        }else if(strcmp(trama1.header, DISCONECT_BOWMAN)==0){
+            trama1.data = (char*)malloc(sizeof(char)*(256-trama1.header_length-3));
+            memcpy(trama1.data, &trama[3+trama1.header_length], 256-trama1.header_length-3);
+            char * port = strtok(trama1.data, "&");
+            printf("port: %s\n", port);
+            disconnectionBowman(port);
+            return 2;
         }else{
             free(trama1.header);
         }
@@ -282,14 +332,18 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
                 printa(ERR_ACCEPT);
                 return 0;
             }
-
+            int response2 = 0;
             if(port == configDiscovery->portPoole){
                 printa(NEW_POOLE_CONNECTION);
-                if(reciveTrama(newsockfd)==1){
+                response2 = reciveTrama(newsockfd);
+                printraTramas();
+                if(response2 == 1){
                     //write(newsockfd, OK, myStrlen(OK));
                     response = generateTrama(CON_OK, NULL);
                     write(newsockfd, response, 256);
                     free(response);
+                }else if(response2 == 2){
+
                 }else{
                     //write(newsockfd, KO, myStrlen(KO));
                     response = generateTrama(CON_KO, NULL);
@@ -298,7 +352,8 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
                 }
             }else if(port == configDiscovery->portBowman){
                 printa(NEW_BOWMAN_CONNECTION);
-                if(reciveTrama(newsockfd)==1){
+                response2 = reciveTrama(newsockfd);
+                if(response2 == 1){
                     Trama trama = getMinUsersConnected();
                     if(trama.data!=NULL){
                         response = generateTrama(CON_OK, trama.data);
@@ -307,6 +362,8 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
                         response = generateTrama(CON_KO, NULL);
                         write(newsockfd, response, 256);
                     }
+                }else if(response2 == 2){
+
                 }else{
                     response = generateTrama(CON_KO, NULL);
                     write(newsockfd, response, 256);
@@ -319,7 +376,7 @@ int launch_server(int port, char * ip, ConfigDiscovery * configDiscovery) {
             }
             //close(newsockfd);
         }
-        free(tramas);
+        //free(tramas);
         free(response);
     }
     //close(sockfd);

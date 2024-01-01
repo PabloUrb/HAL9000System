@@ -3,9 +3,9 @@
 void initMainFunctions(){
     printa("Init Main Functions\n");
 }
-void connectServer(ConfigBowman * configBowman){
+int connectServer(ConfigBowman * configBowman){
     printa("\nEntra en Connect\n");
-    create_connection(configBowman);
+    return create_connection(configBowman, 0);
 }
 void checkDownloads(){
     printa("\nEntra en Check Downloads\n");

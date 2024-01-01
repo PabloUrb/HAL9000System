@@ -36,7 +36,10 @@ int main(int argc, char *argv[])
         printa("\nEspais: ");
         if(myStrcmp(option, CONNECT) == 1){               //CONNECT
             //connectServer(config);
-            connectServer(configBowman);
+            int response = connectServer(configBowman);
+            if(response == 1){
+                continue;
+            }
         }else if(myStrcmp(option, LOGOUT) == 1){           //LOGOUT
             printa("\nEntra en Logout\n");
             opcio = 1; 

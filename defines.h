@@ -8,6 +8,7 @@
 #define ERR_INPUT "ERROR: Input invalid\n"
 #define SONGS "songs"
 #define PLAYLIST "playlist"
+#define ERR_FLAG "ERROR: Flag invalid\n"
 
 #define FD_READER       0
 #define FD_SPEAKER      1
@@ -61,7 +62,8 @@
 #define CONOK "CONOK"
 #define CONKO "CONKO"
 #define UNKNOWN "UNKNOWN"
-#define DISCONECT "DISCONECT"
+#define DISCONECT_POOLE "DISCONECTP"
+#define DISCONECT_BOWMAN "DISCONECTB"
 #define OK "OK\n"
 #define KO "KO\n"
 

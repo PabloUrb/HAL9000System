@@ -4,9 +4,12 @@
 #define printF(x) write(1, x, strlen(x))
 
 int socketFD;
+char * port;
+extern ConfigBowman *configBowman;
 
 void intHandler2(){
     printa(SIGINT1);
+    create_connection(configBowman, 1);
     close(socketFD);
     intHandler();
     //raise(SIGKILL);
@@ -19,22 +22,36 @@ void printMenu(){
     printF("Choose an option: ");
 }
 
-unsigned char* generateTrama(char * header, ConfigBowman *configBowman){
+unsigned char* generateTrama(char * header, ConfigBowman *configBowman, char * port){
     unsigned char* trama = (unsigned char*)malloc(sizeof(unsigned char)*256);
     trama[0] = 0x01;
     uint16_t size = strlen(header);
     trama[1] = (size >> (8*1)) & 0xff;
     trama[2] = (size >> (8*0)) & 0xff;
     strcpy((char*) &trama[3], header);
-
-    char * data = (char*)malloc(sizeof(char)*256-3-size);
-    strcpy(data, configBowman->nom);
-    int sizeData = strlen(data);
-    //add data to trama
-    memcpy(&trama[3+size], data, sizeData);
-    //rellenar lo que falta de data con 0
-    bzero(&trama[3+size+sizeData], 256-3-size-sizeData);
     
+    if(configBowman != NULL){
+        char * data = (char*)malloc(sizeof(char)*256-3-size);
+        strcpy(data, configBowman->nom);
+        int sizeData = strlen(data);
+        //add data to trama
+        memcpy(&trama[3+size], data, sizeData);
+        //rellenar lo que falta de data con 0
+        bzero(&trama[3+size+sizeData], 256-3-size-sizeData);
+    }else if(port != NULL){
+        printf("port: %s\n", port);
+        printf("header: %s\n", header);
+        char * data = (char*)malloc(sizeof(char)*256-3-size);
+        strcpy(data, port);
+        strcat(data, "&");
+        int sizeData = strlen(data);
+        //add data to trama
+        memcpy(&trama[3+size], data, sizeData);
+        //rellenar lo que falta de data con 0
+        bzero(&trama[3+size+sizeData], 256-3-size-sizeData);
+    }else{
+        printF(ERR_TRAMA);
+    }
     return trama;
 }
 
@@ -57,17 +74,20 @@ int reciveTrama(unsigned char * trama, int socketFD){
             printf("Data: %s\n", data);
         }else{
             printF(ERR_RECIVE);
+            printaInt(4);
+            return 1;
         }
     return response;
 }
-void connect_Poole(char * data, ConfigBowman * configBowman){
+int connect_Poole(char * data, ConfigBowman * configBowman){
     struct sockaddr_in servidor;
+    int response = 0;
 
     signal(SIGINT, intHandler2);
 
     char * nom = strtok(data, "&");
     char * ip = strtok(NULL, "&");
-    char * port = strtok(NULL, "&");
+    port = strtok(NULL, "&");
 
     if(ip!=NULL && port != NULL){
         printf("\n====================\n");
@@ -88,10 +108,11 @@ void connect_Poole(char * data, ConfigBowman * configBowman){
         }
 
         if(connect(socketFD, (struct sockaddr*) &servidor, sizeof(servidor)) < 0){
-            printF(ERR_CONNECT);
+            perror(ERR_CONNECT);
+            return 1;
         }else{
             //envia trama a Poole
-            unsigned char* trama = generateTrama(NEW_BOWMAN, configBowman);
+            unsigned char* trama = generateTrama(NEW_BOWMAN, configBowman, NULL);
             write(socketFD, trama, 256);
 
             //lee la trama desde Poole
@@ -111,6 +132,8 @@ void connect_Poole(char * data, ConfigBowman * configBowman){
                 printf("Data: %s\n", data);
             }else{
                 printF(ERR_RECIVE);
+                printaInt(3);
+                return 1;
             }
             
             
@@ -118,12 +141,15 @@ void connect_Poole(char * data, ConfigBowman * configBowman){
         }
     }else{
         printF(ERR_RECIVE);
+        printaInt(2);
+        return 1;
     }
+    return response;
 }
 
-void create_connection(ConfigBowman * configBowman){
+int create_connection(ConfigBowman * configBowman, int flag){
 
-    
+    int response = 0;
     struct sockaddr_in servidor;
 
     signal(SIGINT, intHandler2);
@@ -140,10 +166,13 @@ void create_connection(ConfigBowman * configBowman){
     }
 
     if(connect(socketFD, (struct sockaddr*) &servidor, sizeof(servidor)) < 0){
-        printF("Error fent el connect\n");
+        perror(ERR_SEND);
+        return 1;
     }else{
+        if(flag == 0){
         //envia trama a Discovery
-        unsigned char* trama = generateTrama(NEW_BOWMAN, configBowman);
+        printf("Enviada trama a Discovery\n");
+        unsigned char* trama = generateTrama(NEW_BOWMAN, configBowman, NULL);
         write(socketFD, trama, 256);
 
         //lee la trama desde Discovery
@@ -154,47 +183,69 @@ void create_connection(ConfigBowman * configBowman){
             uint16_t header_length = (op[1] << (8*1)) + op[2];
             char * header = (char*)malloc(sizeof(char)*header_length);
             memcpy(header, &op[3], header_length);
-            char * data = (char*)malloc(sizeof(char)*(256-header_length-3));
-            memcpy(data, &op[3+header_length], 256-header_length-3);
-            
-            printF("\nTrama recibida\n");
-            printf("Header Length: %u\n", header_length);
-            printf("Header: %s\n", header);
-            printf("Data: %s\n", data);
-            connect_Poole(data, configBowman);
-            if(strcmp(header, CON_OK) != 0){
-                perror("Error en la conexion\n");
-                raise(SIGKILL);
-            }
-            int opcio = 0;
-            char *input;
-            int n_espais = 0;
-            char option[MAX_INPUT];
-            while(!opcio){
-                printMenu();
-                input = readUntil(FD_READER, '\n');
-                n_espais = prepareData(input, option);
-                printa("\nInput: --");
-                printa(input);
-                printa("--\n");
-                printa("\nOption: ");
-                printa(option);
-                printa("\nEspais: ");
-                printf("%d\n", n_espais);
-                if(strcmp(option, LOGOUT) == 0){           //LOGOUT
-                    printa("\nEntra en Logout\n");
-                    opcio = 1; 
-                }else if(strcmp(option, LIST) == 0 && n_espais >= 1 && strcmp(input, SONGS)==0){            //LIST
-                    printa("\nEntra en List Songs\n");
-                }else if(strcmp(option, LIST) == 0 && n_espais >= 1 && strcmp(input, PLAYLIST)==0){            //LIST
-                    printa("\nEntra en List Playlists\n");
-                }else{
-                    perror(ERR_INPUT);
+            if(strcmp(header, CHECK_OK)){
+                char * data = (char*)malloc(sizeof(char)*(256-header_length-3));
+                memcpy(data, &op[3+header_length], 256-header_length-3);
+                
+                printF("\nTrama recibida\n");
+                printf("Header Length: %u\n", header_length);
+                printf("Header: %s\n", header);
+                printf("Data: %s\n", data);
+                response = connect_Poole(data, configBowman);
+                if(response==1){
+                    return 1;
                 }
+                if(strcmp(header, CON_OK) != 0){
+                    perror(ERR_CONNECT);
+                    raise(SIGKILL);
+                }
+                int opcio = 0;
+                char *input;
+                int n_espais = 0;
+                char option[MAX_INPUT];
+                while(!opcio){
+                    printMenu();
+                    input = readUntil(FD_READER, '\n');
+                    n_espais = prepareData(input, option);
+                    printa("\nInput: --");
+                    printa(input);
+                    printa("--\n");
+                    printa("\nOption: ");
+                    printa(option);
+                    printa("\nEspais: ");
+                    printf("%d\n", n_espais);
+                    if(strcmp(option, LOGOUT) == 0){           //LOGOUT
+                        printa("\nEntra en Logout\n");
+                        opcio = 1; 
+                    }else if(strcmp(option, LIST) == 0 && n_espais >= 1 && strcmp(input, SONGS)==0){            //LIST
+                        printa("\nEntra en List Songs\n");
+                    }else if(strcmp(option, LIST) == 0 && n_espais >= 1 && strcmp(input, PLAYLIST)==0){            //LIST
+                        printa("\nEntra en List Playlists\n");
+                    }else{
+                        perror(ERR_INPUT);
+                    }
+                }
+            }else{
+                printF(ERR_COMUNICATION);
+                return 1;
             }
         }else{
-            printF(ERR_RECIVE);
+            perror(ERR_RECIVE);
+            printaInt(1);
+            return 1;
+        }
+        //close(socketFD);
+        }else if(flag == 1){
+            if(port != NULL){
+                unsigned char* trama = generateTrama(DISCONECT_BOWMAN, NULL, port);
+                write(socketFD, trama, 256);
+            }
+            
+        }else{
+            printF(ERR_FLAG);
+            return 1;
         }
         close(socketFD);
     }
+    return response;
 }

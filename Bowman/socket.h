@@ -25,6 +25,6 @@
 #include <time.h>
 #include <dirent.h>
 
-void create_connection(ConfigBowman * configBowman);
+int create_connection(ConfigBowman * configBowman, int flag);
 
 #endif

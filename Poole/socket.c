@@ -35,6 +35,7 @@ unsigned char* generateTrama(char * header, ConfigPoole *configPoole){
     trama[1] = (size >> (8*1)) & 0xff;
     trama[2] = (size >> (8*0)) & 0xff;
     strcpy((char*) &trama[3], header);
+    printf("header: %s\n", header);
     if(configPoole != NULL){
         char * data = (char*)malloc(sizeof(char)*256-3-size);
         strcpy(data, configPoole->nomServidor);
@@ -47,7 +48,6 @@ unsigned char* generateTrama(char * header, ConfigPoole *configPoole){
         int sizeData = strlen(data);
         //add data to trama
         memcpy(&trama[3+size], data, sizeData);
-        printf("data: %s\n", data);
         //rellenar lo que falta de data con 0
         bzero(&trama[3+size+sizeData], 256-3-size-sizeData);
     }else{
@@ -98,7 +98,6 @@ unsigned char* reciveTramaPoole(char trama[256]){
 
 void intHandler2(){
     launch_server(configPoole, 1);
-    for(;;){close(events[0].data.fd);}
     close(socketFD);
     intHandler();
 }
@@ -107,7 +106,7 @@ int launch_server(ConfigPoole * configPoole, int flag){
     
     char buffer[MAX_INPUT];
     int response = 0;
-
+    signal(SIGINT, intHandler2);
     if( (socketFD = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         printF(ERR_SOCKET);
     }
@@ -131,16 +130,17 @@ int launch_server(ConfigPoole * configPoole, int flag){
             if(write(socketFD, trama, 256)<0){
                 printF(ERR_SEND);
             }
-        }
-        if(flag == 1){
-            sprintf(buffer,"Notifying %s Server, disconect system...\n", configPoole->nomServidor);
-            write(1, buffer, strlen(buffer));
-            trama = generateTrama(DISCONECT, configPoole);
-            write(socketFD, trama, 256);
-        }
-        if(reciveTrama(trama)==1){
+            if(reciveTrama(trama)==1){
                 response = 1;
             }
+        }else if(flag == 1){
+            sprintf(buffer, "Notifying the system of our disconnection...\n");
+            write(1, buffer, strlen(buffer));
+            trama = generateTrama(DISCONECT_POOLE, configPoole);
+            if(write(socketFD, trama, 256)<0){
+                printF(ERR_SEND);
+            }
+        }
     }
     close(socketFD);
 
