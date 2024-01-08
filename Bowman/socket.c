@@ -24,6 +24,16 @@ void printMenu(){
     printF("4. LOGOUT\n");
     printF("Choose an option: ");
 }
+void sendsocket(int mq_id, int fd){
+
+    Message msg;
+        msg.fd = fd;
+        msg.mtype = 1;
+        bzero(msg.header, 60);
+    if (msgsnd(mq_id, &msg, (2*sizeof(int))+(60*sizeof(char)), 0) == -1) {
+        perror("msgsnd");
+    }
+}
 
 unsigned char* generateTrama(char * header, ConfigBowman *configBowman, char * port){
     //int contador_ERR_TRAMA = 0;
@@ -210,6 +220,13 @@ int create_connection(ConfigBowman * configBowman, int flag){
 
     signal(SIGINT, intHandler2);
 
+    key_t key = ftok("thread.c", 1);
+    int mq_id = msgget(key, IPC_CREAT | 0666);
+    if (mq_id == -1) {
+        printa(ERR_COLA);
+        exit(EXIT_FAILURE);
+    }
+
     if( (socketFD = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0){
         printF("Error creant el socket\n");
     }
@@ -226,6 +243,7 @@ int create_connection(ConfigBowman * configBowman, int flag){
         return 1;
     }else{
         if(flag == 0){
+        
         //envia trama a Discovery
         printf("Enviada trama a Discovery\n");
         unsigned char* trama = generateTrama(NEW_BOWMAN, configBowman, NULL);
@@ -234,6 +252,7 @@ int create_connection(ConfigBowman * configBowman, int flag){
         //lee la trama desde Discovery
         unsigned char op [256];
         read(socketFD, op, 256);
+        
         printf("sizeof op: %lu\n", sizeof(op));
         if(sizeof(op)==256){
             uint16_t header_length = (op[1] << (8*1)) + op[2];
@@ -252,16 +271,20 @@ int create_connection(ConfigBowman * configBowman, int flag){
                 if(response==1){
                     return 1;
                 }
+                create_hilos();
+                sendsocket(mq_id, socketFD);
                 if(strcmp(header, CON_OK) != 0){
                     perror(ERR_CONNECT);
                     raise(SIGKILL);
                 }
+                
                 int opcio = 0;
                 char *input;
                 int n_espais = 0;
                 char option[MAX_INPUT];
                 printaInt(socketFD);
                 while(!opcio){
+                    sleep(1);
                     printMenu();
                     input = readUntil(FD_READER, '\n');
                     n_espais = prepareData(input, option);
@@ -293,18 +316,19 @@ int create_connection(ConfigBowman * configBowman, int flag){
                             unsigned char* trama = generateTrama(LIST_SONGS, NULL, port);
                             write(socketFD, trama, 256);
                             free(trama);
-                            if(reciveTrama(socketFD)!=1){
+                            printf("fd: %d\n", socketFD);
+                            /*if(reciveTrama(socketFD)!=1){
                                 cont_ERR_RECIVE++;
-                            }
+                            }*/
                             
                         }else if(strcmp(option, LIST) == 0 && n_espais >= 1 && strcmp(input, PLAYLIST)==0){            //LIST
                             printa("\nEntra en List Playlists\n");
                             unsigned char* trama = generateTrama(LIST_PLAYLISTS, NULL, port);
                             write(socketFD, trama, 256);
                             free(trama);
-                            if(reciveTrama(socketFD)!=1){
+                            /*if(reciveTrama(socketFD)!=1){
                                 cont_ERR_RECIVE++;
-                            }
+                            }*/
                         }else{
                             perror(ERR_INPUT);
                         }

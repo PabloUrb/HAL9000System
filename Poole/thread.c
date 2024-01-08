@@ -215,8 +215,8 @@ void * init_hilos(void* arg){
                     //TODO generar varias tramas
                     //dividir la cadena en varias subcadenas de 256-3-strlen(PLAYLISTS_RESPONSE)
                     printf("strlen(PLAYLISTS_RESPONSE) : %ld\n", strlen(PLAYLISTS_RESPONSE));
-                    printf("256-3-strlen(PLAYLISTS_RESPONSE) : %ld\n", 256-5-strlen(PLAYLISTS_RESPONSE));
-                    dividir_cadena(playlists, 256-5-strlen(PLAYLISTS_RESPONSE), PLAYLISTS_RESPONSE, fd);
+                    printf("256-3-strlen(PLAYLISTS_RESPONSE) : %ld\n", 256-7-strlen(PLAYLISTS_RESPONSE));
+                    dividir_cadena(playlists, 256-7-strlen(PLAYLISTS_RESPONSE), PLAYLISTS_RESPONSE, fd);
                     //generar trama con cada subcadena
 
                 }

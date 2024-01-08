@@ -3,6 +3,7 @@
 
 #include "../tools.h"
 #include "bowman.h"
+#include "thread.h"
 
 
 #include <arpa/inet.h>

@@ -3,6 +3,7 @@
 
 #include "mainFunctions.h"
 #include "../tools.h"
+#include "thread.h"
 
 #include <sys/types.h>
 #include <pthread.h>
