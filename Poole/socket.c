@@ -35,7 +35,7 @@ unsigned char* generateTrama(char * header, ConfigPoole *configPoole){
     trama[1] = (size >> (8*1)) & 0xff;
     trama[2] = (size >> (8*0)) & 0xff;
     strcpy((char*) &trama[3], header);
-    printf("header: %s\n", header);
+    
     if(configPoole != NULL){
         char * data = (char*)malloc(sizeof(char)*256-3-size);
         strcpy(data, configPoole->nomServidor);
@@ -53,45 +53,69 @@ unsigned char* generateTrama(char * header, ConfigPoole *configPoole){
     }else{
         bzero(&trama[3+size], 256-3-size);
     }
-    
+    printf("    header: %s\n", header);
     return trama;
+    free(trama);
+}
+void listSongs(int mq_id, int fd, char * header){
+
+    Message msg;
+        msg.fd = fd;
+        msg.mtype = 1;
+        if(strcmp(header, LIST_SONGS)==0){
+            snprintf(msg.header, 60, LIST_SONGS);
+        }else if(strcmp(header, LIST_PLAYLISTS)==0){
+            snprintf(msg.header, 60, LIST_PLAYLISTS);
+        }else{
+            snprintf(msg.header, 60, ERR_TRAMA_HEADER);
+        }
+        printf("    header: %s\n", msg.header);
+    if (msgsnd(mq_id, &msg, (2*sizeof(int))+(60*sizeof(char)), 0) == -1) {
+        perror("msgsnd");
+    }
 }
 
-unsigned char* reciveTramaPoole(char trama[256]){
-    printa("Recive Trama\n");
+void reciveTramaPoole(char trama[256], int fd, int mq_id){
+    printa("    Recive Trama\n");
+    int error = 1;
     unsigned char* trama2 = (unsigned char*)malloc(sizeof(unsigned char)*256);
-
-    printa("\n");
-        Trama trama1;
-        trama1.contador = 0;
-        trama1.type = trama[0];
-        trama1.data = malloc(sizeof(char)*256);
-        trama1.header_length = (trama[1] << (8*1)) + trama[2];
-        trama1.header = (char*)malloc(sizeof(char)*trama1.header_length);
-        memcpy(trama1.header, &trama[3], trama1.header_length);
+ 
+        uint8_t type = trama[0];
+        uint16_t header_length = (trama[1] << (8*1)) + trama[2];
+        char * header = (char*)malloc(sizeof(char)*(header_length+1));
+        memcpy(header, &trama[3], header_length);
+        header[header_length]='\0';
+        char * data = (char*)malloc(sizeof(char)*(256-header_length-3));
+        memcpy(data, &trama[3+header_length], 256-header_length-3);
+        //data[256-header_length-3]
+        printf("    Type: %d\n", type);
+        printf("    Header Length: %u\n", header_length);
+        printf("    Header: %s\n", header);
         
-        printf("Type: %d\n", trama1.type);
-        printf("Header Length: %u\n", (unsigned int)trama1.header_length);
-        printf("Header: %s\n", trama1.header);
-        
-        if(strcmp(trama1.header, NEW_BOWMAN)==0){
+        if(strcmp(header, NEW_BOWMAN)==0){
             trama2 = generateTrama(CON_OK, NULL);
-            return trama2;
-        }else if(strcmp(trama1.header, LIST_SONGS)==0){
+        }else if(strcmp(header, LIST_SONGS)==0){
+            listSongs(mq_id, fd, LIST_SONGS);
+        }else if(strcmp(header, LIST_PLAYLISTS)==0){
+            listSongs(mq_id, fd, LIST_PLAYLISTS);
+        }else if(strcmp(header, EXIT)==0){
             trama2 = generateTrama(CON_OK, NULL);
-            return trama2;
-        }else if(strcmp(trama1.header, LIST_PLAYLISTS)==0){
-            trama2 = generateTrama(CON_OK, NULL);
-            return trama2;
         }else{
             printF(ERR_TRAMA_HEADER);
+            trama2 = generateTrama(CON_KO, NULL);
+            error = 0;
         }
-        bzero(trama, 256);
-        bzero(trama2, 256);
-        free(trama1.data);
-        free(trama1.header);
-
-    return trama2;
+        free(data);
+        
+    if(strcmp(header, NEW_BOWMAN)==0 || error == 0){
+        if(write(fd, trama2, 256)<0){
+            printF(ERR_SEND);
+        }else{
+            printf("    trama enviada\n");
+        }
+    }
+    free(header);
+    free(trama2);
 }
 
 
@@ -124,7 +148,7 @@ int launch_server(ConfigPoole * configPoole, int flag){
     }else{
         unsigned char* trama;
         if(flag == 0){
-            sprintf(buffer,"Connecting %s Server to the system...\n", configPoole->nomServidor);
+            sprintf(buffer,"\nConnecting %s Server to the system...\n", configPoole->nomServidor);
             write(1, buffer, strlen(buffer));
             trama = generateTrama(NEW_POOLE, configPoole);
             if(write(socketFD, trama, 256)<0){
@@ -185,6 +209,13 @@ void launch_Poole(ConfigPoole *configPoole){
 	char buf[256];
 	struct sockaddr_in srv_addr;
 	struct sockaddr_in cli_addr;
+
+    key_t key = ftok("thread.c", 1);
+    int mq_id = msgget(key, IPC_CREAT | 0666);
+    if (mq_id == -1) {
+        printF(ERR_COLA);
+        exit(EXIT_FAILURE);
+    }
 	
 
 	listen_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -227,24 +258,16 @@ void launch_Poole(ConfigPoole *configPoole){
 					if (n <= 0 ) {
 						break;
 					} else {
-						printf("[+] data: %s\n", buf);
-                        reciveTramaPoole(buf);
-                        unsigned char* trama2 = generateTrama(CON_OK, NULL);
-                        if(write(events[i].data.fd, trama2, 256)<0){
-                            printF(ERR_SEND);
-                        }
+						printf("\n\n[+] data: %s\n", buf);
+                        reciveTramaPoole(buf, events[i].data.fd, mq_id);
 					}
-                    /*n = reciveTramaPoole(events[i].data.fd);
-                    if(n == 1){
-                        printf("Trama enviada\n");
-                    }*/
                 }
 			} else {
-				printf("[+] unexpected\n");
+				printf("\n[+] unexpected\n");
 			}
 			/* check if the connection is closing */
 			if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
-				printf("[+] connection closed\n");
+				printf("\n[+] connection closed\n");
 				epoll_ctl(epfd, EPOLL_CTL_DEL,
 					  events[i].data.fd, NULL);
 				close(events[i].data.fd);

@@ -4,6 +4,7 @@
 #include "poole.h"
 #include "../tools.h"
 #include "../defines.h"
+#include "thread.h"
 
 #include <errno.h>
 #include <arpa/inet.h>

@@ -1,0 +1,268 @@
+==105657== Memcheck, a memory error detector
+==105657== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==105657== Using Valgrind-3.18.1-42b08ed5bd-20211015 and LibVEX; rerun with -h for copyright info
+==105657== Command: ./Bowman Config.dat
+==105657== Parent PID: 618
+==105657== 
+--105657-- 
+--105657-- Valgrind options:
+--105657--    --leak-check=full
+--105657--    --show-leak-kinds=all
+--105657--    --track-origins=yes
+--105657--    --verbose
+--105657--    --log-file=valgrind-out.txt
+--105657-- Contents of /proc/version:
+--105657--   Linux version 5.15.133.1-microsoft-standard-WSL2 (root@1c602f52c2e4) (gcc (GCC) 11.2.0, GNU ld (GNU Binutils) 2.37) #1 SMP Thu Oct 5 21:02:42 UTC 2023
+--105657-- 
+--105657-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand-rdseed
+--105657-- Page sizes: currently 4096, max supported 4096
+--105657-- Valgrind library directory: /usr/libexec/valgrind
+--105657-- Reading syms from /home/pablo/PRACTICA/Bowman/Bowman
+--105657-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+--105657--   Considering /usr/lib/debug/.build-id/cc/cdd41e22e25f77a8cda3d045c57ffdb01a9793.debug ..
+--105657--   .. build-id is valid
+--105657-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
+--105657--    object doesn't have a symbol table
+--105657--    object doesn't have a dynamic symbol table
+--105657-- Scheduler: using generic scheduler lock implementation.
+--105657-- Reading suppressions file: /usr/libexec/valgrind/default.supp
+==105657== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-105657-by-pablo-on-???
+==105657== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-105657-by-pablo-on-???
+==105657== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-105657-by-pablo-on-???
+==105657== 
+==105657== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==105657== don't want to do, unless you know exactly what you're doing,
+==105657== or are doing some strange experiment):
+==105657==   /usr/bin/vgdb --pid=105657 ...command...
+==105657== 
+==105657== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==105657==   /path/to/gdb ./Bowman
+==105657== and then give GDB the following command
+==105657==   target remote | /usr/bin/vgdb --pid=105657
+==105657== --pid is optional if only one valgrind process is running
+==105657== 
+--105657-- REDIR: 0x402aa40 (ld-linux-x86-64.so.2:strlen) redirected to 0x580bcec2 (???)
+--105657-- REDIR: 0x402a810 (ld-linux-x86-64.so.2:index) redirected to 0x580bcedc (???)
+--105657-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--105657--    object doesn't have a symbol table
+--105657-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+--105657--    object doesn't have a symbol table
+==105657== WARNING: new redirection conflicts with existing -- ignoring it
+--105657--     old: 0x0402aa40 (strlen              ) R-> (0000.0) 0x580bcec2 ???
+--105657--     new: 0x0402aa40 (strlen              ) R-> (2007.0) 0x0484ee30 strlen
+--105657-- REDIR: 0x4027220 (ld-linux-x86-64.so.2:strcmp) redirected to 0x484fcd0 (strcmp)
+--105657-- REDIR: 0x402afa0 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4853840 (mempcpy)
+--105657-- Reading syms from /usr/lib/x86_64-linux-gnu/libc.so.6
+--105657--   Considering /usr/lib/debug/.build-id/20/3de0ae33b53fee1578b117cb4123e85d0534f0.debug ..
+--105657--   .. build-id is valid
+==105657== WARNING: new redirection conflicts with existing -- ignoring it
+--105657--     old: 0x04905c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--105657--     new: 0x04905c60 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
+==105657== WARNING: new redirection conflicts with existing -- ignoring it
+--105657--     old: 0x04905c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--105657--     new: 0x04905c60 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
+==105657== WARNING: new redirection conflicts with existing -- ignoring it
+--105657--     old: 0x04905c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--105657--     new: 0x04905c60 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
+==105657== WARNING: new redirection conflicts with existing -- ignoring it
+--105657--     old: 0x04905c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--105657--     new: 0x04905c60 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
+--105657-- REDIR: 0x4908720 (libc.so.6:strnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49089e0 (libc.so.6:strpbrk) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49082e0 (libc.so.6:strcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4926cd0 (libc.so.6:wcsnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49096d0 (libc.so.6:memset) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4925540 (libc.so.6:wcslen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4909c10 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4925370 (libc.so.6:wcschr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4908260 (libc.so.6:index) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4908960 (libc.so.6:rindex) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49095a0 (libc.so.6:memmove) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+==105657== Preferring higher priority redirection:
+--105657--     old: 0x04a005c0 (__memcpy_avx_unalign) R-> (2018.0) 0x04850f90 __memcpy_avx_unaligned_erms
+--105657--     new: 0x04a005c0 (__memcpy_avx_unalign) R-> (2018.1) 0x04852880 memmove
+--105657-- REDIR: 0x49253f0 (libc.so.6:wcscmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49099e0 (libc.so.6:stpncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49259b0 (libc.so.6:wmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4908830 (libc.so.6:strncmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4909a70 (libc.so.6:strcasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4908420 (libc.so.6:strcspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4925470 (libc.so.6:wcscpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49081d0 (libc.so.6:strcat) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4909b60 (libc.so.6:strncasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4909480 (libc.so.6:bcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4911570 (libc.so.6:memrchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x490b010 (libc.so.6:strchrnul) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4908390 (libc.so.6:strcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4909b10 (libc.so.6:strcasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49086a0 (libc.so.6:strlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49088d0 (libc.so.6:strncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4909950 (libc.so.6:stpcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49093f0 (libc.so.6:memchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4908b00 (libc.so.6:strspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49097d0 (libc.so.6:mempcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x4909ac0 (libc.so.6:strncasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x490af80 (libc.so.6:rawmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--105657-- REDIR: 0x49fd410 (libc.so.6:__strrchr_avx2) redirected to 0x484e810 (rindex)
+--105657-- REDIR: 0x49050a0 (libc.so.6:malloc) redirected to 0x4848820 (malloc)
+--105657-- REDIR: 0x4905740 (libc.so.6:realloc) redirected to 0x484dc50 (realloc)
+--105657-- REDIR: 0x49053e0 (libc.so.6:free) redirected to 0x484b210 (free)
+--105657-- REDIR: 0x49fd200 (libc.so.6:__strchrnul_avx2) redirected to 0x4853330 (strchrnul)
+--105657-- REDIR: 0x49fd5e0 (libc.so.6:__strlen_avx2) redirected to 0x484ed10 (strlen)
+--105657-- REDIR: 0x4a00d80 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x4852770 (memset)
+--105657-- REDIR: 0x49feab0 (libc.so.6:__strcpy_avx2) redirected to 0x484ee60 (strcpy)
+--105657-- REDIR: 0x4a00580 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4853440 (mempcpy)
+--105657-- REDIR: 0x4a005c0 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4852880 (memmove)
+--105657-- REDIR: 0x49f8740 (libc.so.6:__strcmp_avx2) redirected to 0x484fbd0 (strcmp)
+--105657-- REDIR: 0x49f8610 (libc.so.6:__strspn_sse42) redirected to 0x4853d50 (strspn)
+--105657-- REDIR: 0x49f83b0 (libc.so.6:__strcspn_sse42) redirected to 0x4853c70 (strcspn)
+==105657== Invalid read of size 1
+==105657==    at 0x4852A10: memmove (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10A9DA: reciveTrama (socket.c:73)
+==105657==    by 0x10B567: create_connection (socket.c:253)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657==  Address 0x1fff001000 is not stack'd, malloc'd or (recently) free'd
+==105657== 
+==105657== 
+==105657== Process terminating with default action of signal 11 (SIGSEGV)
+==105657==  Access not within mapped region at address 0x1FFF001000
+==105657==    at 0x4852A10: memmove (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10A9DA: reciveTrama (socket.c:73)
+==105657==    by 0x10B567: create_connection (socket.c:253)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657==  If you believe this happened as a result of a stack
+==105657==  overflow in your program's main thread (unlikely but
+==105657==  possible), you can try to increase the size of the
+==105657==  main thread stack using the --main-stacksize= flag.
+==105657==  The main thread stack size used in this run was 8388608.
+==105657== 
+==105657== HEAP SUMMARY:
+==105657==     in use at exit: 47,523 bytes in 15 blocks
+==105657==   total heap usage: 64 allocs, 49 frees, 48,460 bytes allocated
+==105657== 
+==105657== Searching for pointers to 15 not-freed blocks
+==105657== Checked 114,896 bytes
+==105657== 
+==105657== 7 bytes in 1 blocks are still reachable in loss record 1 of 15
+==105657==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10987B: read_until (tools.c:10)
+==105657==    by 0x109F76: llegirFitxerBowman (tools.c:162)
+==105657==    by 0x10952A: main (bowman.c:25)
+==105657== 
+==105657== 7 bytes in 1 blocks are still reachable in loss record 2 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10B164: create_connection (socket.c:201)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 7 bytes in 1 blocks are definitely lost in loss record 3 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10AE13: connect_Poole (socket.c:140)
+==105657==    by 0x10B2A7: create_connection (socket.c:212)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 8 bytes in 1 blocks are still reachable in loss record 4 of 15
+==105657==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10987B: read_until (tools.c:10)
+==105657==    by 0x109F8F: llegirFitxerBowman (tools.c:164)
+==105657==    by 0x10952A: main (bowman.c:25)
+==105657== 
+==105657== 8 bytes in 1 blocks are still reachable in loss record 5 of 15
+==105657==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x109955: readUntil (tools.c:30)
+==105657==    by 0x109554: main (bowman.c:28)
+==105657== 
+==105657== 11 bytes in 1 blocks are still reachable in loss record 6 of 15
+==105657==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10987B: read_until (tools.c:10)
+==105657==    by 0x109FA9: llegirFitxerBowman (tools.c:166)
+==105657==    by 0x10952A: main (bowman.c:25)
+==105657== 
+==105657== 11 bytes in 1 blocks are still reachable in loss record 7 of 15
+==105657==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x109955: readUntil (tools.c:30)
+==105657==    by 0x10B344: create_connection (socket.c:227)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 32 bytes in 1 blocks are still reachable in loss record 8 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x109F29: llegirFitxerBowman (tools.c:153)
+==105657==    by 0x10952A: main (bowman.c:25)
+==105657== 
+==105657== 247 bytes in 1 blocks are still reachable in loss record 9 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10B1DC: create_connection (socket.c:205)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 247 bytes in 1 blocks are definitely lost in loss record 10 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10AE6A: connect_Poole (socket.c:143)
+==105657==    by 0x10B2A7: create_connection (socket.c:212)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 256 bytes in 1 blocks are still reachable in loss record 11 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10A676: generateTrama (socket.c:28)
+==105657==    by 0x10B0D6: create_connection (socket.c:192)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 256 bytes in 1 blocks are still reachable in loss record 12 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10A676: generateTrama (socket.c:28)
+==105657==    by 0x10B537: create_connection (socket.c:251)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 256 bytes in 1 blocks are definitely lost in loss record 13 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10A676: generateTrama (socket.c:28)
+==105657==    by 0x10AD85: connect_Poole (socket.c:131)
+==105657==    by 0x10B2A7: create_connection (socket.c:212)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 1,024 bytes in 1 blocks are still reachable in loss record 14 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x48DEBA3: _IO_file_doallocate (filedoalloc.c:101)
+==105657==    by 0x48EDCDF: _IO_doallocbuf (genops.c:347)
+==105657==    by 0x48ECF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==105657==    by 0x48EB6D4: _IO_new_file_xsputn (fileops.c:1243)
+==105657==    by 0x48EB6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==105657==    by 0x48E0F1B: puts (ioputs.c:40)
+==105657==    by 0x10B0B8: create_connection (socket.c:191)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== 45,146 bytes in 1 blocks are still reachable in loss record 15 of 15
+==105657==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10A9AF: reciveTrama (socket.c:72)
+==105657==    by 0x10B567: create_connection (socket.c:253)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657== 
+==105657== LEAK SUMMARY:
+==105657==    definitely lost: 510 bytes in 3 blocks
+==105657==    indirectly lost: 0 bytes in 0 blocks
+==105657==      possibly lost: 0 bytes in 0 blocks
+==105657==    still reachable: 47,013 bytes in 12 blocks
+==105657==         suppressed: 0 bytes in 0 blocks
+==105657== 
+==105657== ERROR SUMMARY: 4 errors from 4 contexts (suppressed: 0 from 0)
+==105657== 
+==105657== 1 errors in context 1 of 4:
+==105657== Invalid read of size 1
+==105657==    at 0x4852A10: memmove (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==105657==    by 0x10A9DA: reciveTrama (socket.c:73)
+==105657==    by 0x10B567: create_connection (socket.c:253)
+==105657==    by 0x10A52B: connectServer (mainFunctions.c:8)
+==105657==    by 0x109601: main (bowman.c:39)
+==105657==  Address 0x1fff001000 is not stack'd, malloc'd or (recently) free'd
+==105657== 
+==105657== ERROR SUMMARY: 4 errors from 4 contexts (suppressed: 0 from 0)

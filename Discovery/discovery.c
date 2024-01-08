@@ -22,7 +22,7 @@ void *threadFunc (void *arg){
     }else if(i==2){
         launch_server(configDiscovery->portBowman, configDiscovery->ipServerBowman, configDiscovery);
     }else{
-        printa("ERROR: Input invalid\n");
+        perror(ERR_INVALID_INPUT);
         return NULL;
     }
     return NULL;
@@ -32,13 +32,13 @@ int main(int argc, char *argv[]){
     signal(SIGINT, intHandler);
 
     if(argc != 2){
-        perror("ERROR1: Input invalid\n");
+        perror(ERR_INVALID_INPUT);
         return 0;
     }
     configDiscovery = llegirFitxerDiscovery(argv[1]);
     
     if(configDiscovery == NULL){
-        perror("ERROR2: Input invalid\n");
+        perror(ERR_INVALID_INPUT);
         return 0;
     }
     
@@ -50,12 +50,12 @@ int main(int argc, char *argv[]){
     void *res;
     s = pthread_create(&thread1, NULL, threadFunc, (void*)(uintptr_t)1);
     if (s != 0){
-        perror("ERROR3: Input invalid\n");
+        perror(ERR_INVALID_INPUT);
         return 0;
     }
     s = pthread_create(&thread2, NULL, threadFunc, (void*)(uintptr_t)2);
     if (s != 0){
-        perror("ERROR4: Input invalid\n");
+        perror(ERR_INVALID_INPUT);
         return 0;
     }
     s = pthread_join(thread1, &res);

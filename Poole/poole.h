@@ -5,6 +5,7 @@
 #include "../defines.h"
 #include "../tools.h"
 #include "socket.h"
+#include "thread.h"
 
 #include <sys/types.h>
 #include <pthread.h>

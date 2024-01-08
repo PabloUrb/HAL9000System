@@ -51,6 +51,12 @@ typedef struct{
     int contador;
 }Trama;
 
+typedef struct {
+    long mtype;
+    int fd;
+    char header[60];
+}Message;
+
 
 char *read_until(int fd, char delimiter);
 char *readUntil(int fd, char delimiter);
@@ -58,6 +64,7 @@ void printa(char * cadena);
 void printaInt(int i);
 int myStrlen(char * cadena);
 int myStrcmp(char * cad1, char * cad2);
+char* replace_char(char* str, char find, char replace);
 int myStrcasecmp(char * cad1, char * cad2);
 int prepareData(char * input, char option[MAX_INPUT]);
 void freeAllMemBowman(ConfigBowman * configBowman);

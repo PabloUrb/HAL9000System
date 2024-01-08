@@ -18,11 +18,14 @@
 #define BACKLOG         200
 #define NI_MAXHOST      1025
 #define NI_MAXSERV      32
+#define NI_THREADS      2
 
 #define printF(x) write(1, x, strlen(x))
 
 //Poole
-#define CONNECTED "Connected to HAL 9000 System, ready to listen to Bowmans petitions\n"
+#define CONNECTED   "Connected to HAL 9000 System, ready to listen to Bowmans petitions\n"
+#define ERR_COLA    "Error creando la cola\n"
+#define ERR_MSG     "Error al recibir el msg\n"
 
 //Sockets
 #define ERR_SEND "Error fent el send\n"
