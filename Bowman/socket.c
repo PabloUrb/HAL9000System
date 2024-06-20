@@ -24,7 +24,7 @@ void printMenu(){
     printF("4. LOGOUT\n");
     printF("Choose an option: ");
 }
-void sendsocket(int mq_id, int fd){
+/*void sendsocket(int mq_id, int fd){
 
     Message msg;
         msg.fd = fd;
@@ -33,7 +33,7 @@ void sendsocket(int mq_id, int fd){
     if (msgsnd(mq_id, &msg, (2*sizeof(int))+(60*sizeof(char)), 0) == -1) {
         perror("msgsnd");
     }
-}
+}*/
 
 unsigned char* generateTrama(char * header, ConfigBowman *configBowman, char * port){
     //int contador_ERR_TRAMA = 0;
@@ -219,8 +219,8 @@ int create_connection(ConfigBowman * configBowman, int flag){
     struct sockaddr_in servidor;
 
     signal(SIGINT, intHandler2);
-
-    key_t key = ftok("thread.c", 1);
+    int project_id = getpid() % 255;
+    key_t key = ftok("thread.c", project_id);
     int mq_id = msgget(key, IPC_CREAT | 0666);
     if (mq_id == -1) {
         printa(ERR_COLA);
@@ -271,13 +271,13 @@ int create_connection(ConfigBowman * configBowman, int flag){
                 if(response==1){
                     return 1;
                 }
-                create_hilos();
-                sendsocket(mq_id, socketFD);
+                
+                //sendsocket(mq_id, socketFD);
                 if(strcmp(header, CON_OK) != 0){
                     perror(ERR_CONNECT);
                     raise(SIGKILL);
                 }
-                
+                create_hilos(socketFD);
                 int opcio = 0;
                 char *input;
                 int n_espais = 0;
@@ -330,7 +330,8 @@ int create_connection(ConfigBowman * configBowman, int flag){
                                 cont_ERR_RECIVE++;
                             }*/
                         }else{
-                            perror(ERR_INPUT);
+                            perror(ERR_INVALID_INPUT);
+                            break;
                         }
                     }else{
                         printf("cont_ERR_RECIVE: %d\n", cont_ERR_RECIVE);
@@ -357,6 +358,7 @@ int create_connection(ConfigBowman * configBowman, int flag){
             }
             
         }else{
+            close(socketFD);
             printF(ERR_FLAG);
             return 1;
         }

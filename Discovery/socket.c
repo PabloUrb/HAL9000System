@@ -1,77 +1,70 @@
 #include "socket.h"
 #define MAX_CHAR 50
 
+
 int sockfdCopy[2], newsockfdCopy[2];
+Trama *tramas = NULL;
+int numTramas = 0;
 
 
-//array de tramas
-Trama * tramas;
-int numTramas;
-
-void initSockets(){
-    printa("Init Sockets\n");
-}
-
-void intHandler2(){
-
-    if(newsockfdCopy[0]!=0){printf("cierrra newSock POOLE\n");close(newsockfdCopy[0]);}
-    if(newsockfdCopy[0]!=0){printf("cierrra newSock BOWMAN\n");close(newsockfdCopy[1]);}
-    if(newsockfdCopy[0]!=0){printf("cierrra Sock POOLE\n");close(sockfdCopy[0]);}
-    if(newsockfdCopy[0]!=0){printf("cierrra Sock BOWMAN\n");close(sockfdCopy[1]);}
+void intHandler2() {
+    if (newsockfdCopy[0] != 0) { printf("cierra newSock POOLE\n"); close(newsockfdCopy[0]); }
+    if (newsockfdCopy[1] != 0) { printf("cierra newSock BOWMAN\n"); close(newsockfdCopy[1]); }
+    if (sockfdCopy[0] != 0) { printf("cierra Sock POOLE\n"); close(sockfdCopy[0]); }
+    if (sockfdCopy[1] != 0) { printf("cierra Sock BOWMAN\n"); close(sockfdCopy[1]); }
     
-    printa(SIGINT1);
+    printa("SIGINT received");
     free(tramas);
-    intHandler();
-    //raise(SIGKILL);
+    // Replace `intHandler()` with appropriate cleanup if necessary
+    // intHandler();
+    // raise(SIGKILL);
 }
-void shutdown_Poole(int port){
-    if(tramas!=NULL){
-        char * nom;
-        char * ip;
-        char * port2;
-        for(int i = 0; tramas!=NULL && tramas[i].data != NULL && tramas[i].header_length!=0; i++){
-            char * temp1 = (char*)malloc(sizeof(char) * (strlen(tramas[i].data)+1));
-            strcpy(temp1, tramas[i].data);
-            nom = strtok(temp1, "&");
-            ip = strtok(NULL, "&");
-            port2 = strtok(NULL, "&");
 
-            printf("\n====================\n");
-            printf("Datos de Poole\n");
-            printf("nom: %s\n", nom);
-            printf("ip: %s\n", ip);
-            printf("i: %d\n", i);
-            printf("numTramas: %d\n", numTramas);
-            printf("port 1: %d\n", port);
-            printf("port 2: %s\n", port2);
-            printf("\n====================\n");
-            if(port2 != NULL && atoi(port2) == port){
-                //tramas = (Trama*)realloc(tramas, sizeof(Trama)*(numTramas+1));
-                //tramas[i] = tramas[i+100];
-                free(tramas[i].data);
-                free(tramas[i].header);
-                i++;
-                tramas[i-1] = tramas[i];
-                tramas = (Trama*)realloc(tramas, sizeof(Trama)*(numTramas));
-            }
-            if(numTramas == 0){
-                //memset(tramas, 0, sizeof(Trama));
-            }
-            numTramas--;
-            free(temp1);
-        }
-        
+char *my_strdup(const char *src) {
+    char *dup = malloc(strlen(src) + 1);
+    if (dup != NULL) {
+        strcpy(dup, src);
     }
+    return dup;
 }
-void disconnectionBowman(char * port){
-    if(tramas!=NULL){
-        char * nom;
-        char * ip;
-        char * port2;
-        char * temp1;
-        for(int i = 0; tramas[i].header_length!=0 && tramas[i].data != NULL; i++){
-            temp1 = (char*)malloc(sizeof(char) * (strlen(tramas[i].data)+1));
-            strcpy(temp1, tramas[i].data);
+
+void eliminar_trama(Trama **tramas, int *num_tramas, int index) {
+    if (index >= *num_tramas || index < 0) {
+        printf("Índice fuera de rango: %d (num_tramas: %d)\n", index, *num_tramas);
+        return;
+    }
+
+    printf("Eliminando trama en índice: %d (num_tramas: %d)\n", index, *num_tramas);
+    // Mover elementos restantes
+    for (int i = index; i < *num_tramas - 1; ++i) {
+        (*tramas)[i] = (*tramas)[i + 1];
+    }
+
+    // Reducir el tamaño del array
+    if (*num_tramas - 1 > 0) {
+        Trama *new_tramas = realloc(*tramas, (*num_tramas - 1) * sizeof(Trama));
+        if (new_tramas == NULL) {
+            // Error de realloc, no podemos continuar
+            perror("Error al reasignar memoria");
+            exit(EXIT_FAILURE);
+        }
+        *tramas = new_tramas;
+    } else {
+        free(*tramas);
+        *tramas = NULL;
+    }
+
+    (*num_tramas)--;
+    printf("Trama eliminada. Nuevo tamaño de num_tramas: %d\n", *num_tramas);
+}
+void disconnectionBowman(char *port) {
+    if (tramas != NULL) {
+        char *nom;
+        char *ip;
+        char *port2;
+        char *temp1;
+        for (int i = 0; tramas[i].header_length != 0 && tramas[i].data != NULL; i++) {
+            temp1 = my_strdup(tramas[i].data);
             nom = strtok(temp1, "&");
             ip = strtok(NULL, "&");
             port2 = strtok(NULL, "&");
@@ -82,48 +75,87 @@ void disconnectionBowman(char * port){
             printf("ip: %s\n", ip);
             printf("i: %d\n", i);
             printf("numTramas: %d\n", numTramas);
+            printf("contador trama %d: %d\n", i, tramas[i].contador);
             printf("port 1: %s\n", port);
             printf("port 2: %s\n", port2);
             printf("\n====================\n");
-            if(port2 != NULL || atoi(port2) == atoi(port)){
-                tramas[i].contador = tramas[i].contador - 1;
+            if (port2 != NULL && atoi(port2) == atoi(port)) {
+                if (tramas[i].contador != 0) {
+                    tramas[i].contador = tramas[i].contador - 1;
+                }
+                
                 printf("contador: %d\n", tramas[i].contador);
             }
+            printf("contador trama %d: %d\n", i, tramas[i].contador);
             free(temp1);
         }
     }
 }
-void printraTramas(){
-    if(tramas!=NULL){
-        for(int i = 0; tramas[i].data != NULL && tramas[i].header_length!=0; i++){
+
+void shutdown_Poole(int port) {
+    if (tramas != NULL) {
+        for (int i = 0; i < numTramas; i++) {
+            if (tramas[i].data != NULL && tramas[i].header_length != 0) {
+                char *temp1 = my_strdup(tramas[i].data);
+                char *nom = strtok(temp1, "&");
+                char *ip = strtok(NULL, "&");
+                char *port2 = strtok(NULL, "&");
+
+                printf("\n====================\n");
+                printf("Datos de Poole\n");
+                printf("nom: %s\n", nom);
+                printf("ip: %s\n", ip);
+                printf("i: %d\n", i);
+                printf("numTramas: %d\n", numTramas);
+                printf("port 1: %d\n", port);
+                printf("port 2: %s\n", port2);
+                printf("\n====================\n");
+
+                if (port2 != NULL && atoi(port2) == port) {
+                    disconnectionBowman(port2);
+                    eliminar_trama(&tramas, &numTramas, i);
+                    i--; // Ajustar índice después de eliminar un elemento
+                }
+
+                free(temp1);
+            }
+        }
+    }
+}
+
+
+
+void printraTramas() {
+    if (tramas != NULL) {
+        for (int i = 0; tramas[i].data != NULL && tramas[i].header_length != 0; i++) {
             printf("HEADER DE LA TRAMA: %s\n", tramas[i].header);
             printf("DATA DE LA TRAMA: %s\n", tramas[i].data);
         }
     }
-
 }
-Trama getMinUsersConnected(){
+
+Trama getMinUsersConnected() {
     Trama minTrama;
     int min = 1000;
-    //int cont = 0;
+    int cont = 0;
+    memset(&minTrama, 0, sizeof(Trama));
     printa("\n");
     printa("\n");
     printa("\n");
-    if(tramas!=NULL){
-        for(int i = 0; tramas[i].header_length!=0 && tramas[i].data != NULL; i++){
+    if (tramas != NULL) {
+        for (int i = 0; tramas[i].header_length != 0 && tramas[i].data != NULL; i++) {
             printf("contador de la trama %d: %d\n", i, tramas[i].contador);
-            if(tramas[i].contador <= min){
+            if (tramas[i].contador <= min) {
                 min = tramas[i].contador;
             }
-            
         }
         printf("\n\nMIN: %d\n\n", min);
-        for(int i = 0; tramas[i].header_length!=0 && tramas[i].data != NULL; i++){
-            if(tramas[i].contador == min){
+        for (int i = 0; tramas[i].header_length != 0 && tramas[i].data != NULL; i++) {
+            if (tramas[i].contador == min && cont == 0) {
                 printf("data de la trama %d: %s\n", i, tramas[i].data);
                 minTrama.data = tramas[i].data;
                 tramas[i].contador++;
-                //cont++;
+                cont++;
             }
             printf("contador de la trama %d: %d\n", i, tramas[i].contador);
         }

@@ -125,58 +125,50 @@ char * leerCSV(){
     return playlists;
     free(playlists);
 }
-void dividir_cadena(char * cadena, int tamaño, char * header, int fd){
-    int contador = 0;
-    printf("tamaño : %d\n", tamaño);
-    printf("cadena : %s\n", cadena);
-    printf("strlen(cadena) : %ld\n", strlen(cadena));
-    printf("fd : %d\n", fd);
-    int num_tramas = 0;
-    if(((int)strlen(cadena)%tamaño)==0){
-        num_tramas = (int)strlen(cadena)/tamaño;
-    }else{
-        printf("pork el resto es : %d\n", (int)strlen(cadena)%tamaño);
-        num_tramas = ((int)strlen(cadena)/tamaño)+1;
-    }
-    printf("num_tramas : %d\n", num_tramas);
-    printf("header : %s\n", header);
-    printf("strlen(header) : %ld\n", strlen(header));
-    char * aux = (char*)malloc(sizeof(char)*tamaño);
-    char * aux2 = (char*)malloc(sizeof(char)*(tamaño+2));
-    for(int i=0;i<(int)strlen(cadena);i++){
-        if(contador<tamaño){
-            aux[contador] = cadena[i];
-            contador++;
-        }
-        else if(contador==tamaño){
-            sprintf(aux2, "%d", num_tramas);
-            strcat(aux2, "&");
-            strcat(aux2, aux);
+void dividir_cadena(char * cadena, int tamano, char * header, int fd){
+    int cadena_len = strlen(cadena);
+    int num_paquetes = (cadena_len + tamano - 1) / tamano; // Calcula el número de paquetes necesarios
 
-            printf("aux2 : %s\n", aux2);
-            printf("strlen(aux2) : %ld\n", strlen(aux2));
-            generateTrama2(header, fd, aux);
-            contador = 0;
-            bzero(aux, tamaño);
-        }
-        else{
-            printf("else\n");
-        }
-        
+    // Asignar memoria para el array de paquetes
+    char **paquetes = (char **)malloc(num_paquetes * sizeof(char *));
+    if (paquetes == NULL) {
+        perror("Error al asignar memoria para los paquetes");
+        exit(EXIT_FAILURE);
     }
-    sprintf(aux2, "%d", num_tramas);
-            strcat(aux2, "&");
-            strcat(aux2, aux);
-    printf("aux2 : %s\n", aux2);
-    printf("strlen(aux2) : %ld\n", strlen(aux2));
-    generateTrama2(header, fd, aux2);
-    free(aux2);
-    free(aux);
+
+    for (int i = 0; i < num_paquetes; ++i) {
+        paquetes[i] = (char *)malloc((tamano + 1) * sizeof(char)); // +1 para el terminador nulo
+        if (paquetes[i] == NULL) {
+            perror("Error al asignar memoria para un paquete");
+            // Liberar la memoria asignada hasta ahora
+            for (int j = 0; j < i; ++j) {
+                free(paquetes[j]);
+            }
+            free(paquetes);
+            exit(EXIT_FAILURE);
+        }
+
+        // Copiar la parte correspondiente de la cadena al paquete
+        strncpy(paquetes[i], cadena + i * tamano, tamano);
+        paquetes[i][tamano] = '\0'; // Asegurarse de que el paquete está null-terminated
+        generateTrama2(header, fd, paquetes[i]);
+    }
+}
+long random_long(long min, long max) {
+    if (min > max) {
+        long temp = min;
+        min = max;
+        max = temp;
+    }
+
+    // Generar un número aleatorio en el rango [min, max]
+    return min + (rand() % (max - min + 1));
 }
 
 void * init_hilos(void* arg){
     printa("Hilo iniciado\n");
     int mq_id = *((int *)arg);
+    printf("mq_id : %d\n", mq_id);
     int fd;
     char * songs;
     char * playlists;
@@ -184,11 +176,13 @@ void * init_hilos(void* arg){
     while(1){
         ssize_t bytes_read = msgrcv(mq_id, &msg, (2*sizeof(int))+(60*sizeof(char)), 1, 0);
         if (bytes_read < 0 ) {
-                printa(ERR_MSG);
+                perror(ERR_MSG);
+                break;
         }else{
             Message m2;
             m2.fd = msg.fd;
-            m2.mtype = 1000 + 1;
+            printf("fd : %d\n", m2.fd);
+            m2.mtype = random_long(100000L, 999999L);
             strcpy(m2.header, msg.header);
             printf("fd : %d, mtype: %ld, header: %s\n", m2.fd, m2.mtype, m2.header);
             fd = m2.fd;
@@ -197,7 +191,7 @@ void * init_hilos(void* arg){
             pthread_mutex_lock (&sum_mutex);
             if(strcmp(m2.header, LIST_SONGS)==0){
                 songs = leer_canciones();
-                //Si el tamaño de la cadena es menor que el tamaño que tiene que ocupar en la trama
+                //Si el tamano de la cadena es menor que el tamano que tiene que ocupar en la trama
                 if(strlen(songs)<(256-3-strlen(SONGS_RESPONSE))){
                     generateTrama2(SONGS_RESPONSE, fd, songs);
                 }else{
@@ -208,15 +202,15 @@ void * init_hilos(void* arg){
                 printa("\n*******************************\n");
                 printf("size : %ld \n", strlen(playlists));
                 printf("%s\n", playlists);
-                //Si el tamaño de la cadena es menor que el tamaño que tiene que ocupar en la trama
+                //Si el tamano de la cadena es menor que el tamano que tiene que ocupar en la trama
                 if(strlen(playlists)<(256-3-strlen(PLAYLISTS_RESPONSE))){
                     generateTrama2(PLAYLISTS_RESPONSE, fd, playlists);
                 }else{
                     //TODO generar varias tramas
                     //dividir la cadena en varias subcadenas de 256-3-strlen(PLAYLISTS_RESPONSE)
                     printf("strlen(PLAYLISTS_RESPONSE) : %ld\n", strlen(PLAYLISTS_RESPONSE));
-                    printf("256-3-strlen(PLAYLISTS_RESPONSE) : %ld\n", 256-7-strlen(PLAYLISTS_RESPONSE));
-                    dividir_cadena(playlists, 256-7-strlen(PLAYLISTS_RESPONSE), PLAYLISTS_RESPONSE, fd);
+                    printf("256-3-strlen(PLAYLISTS_RESPONSE) : %ld\n", 256-3-strlen(PLAYLISTS_RESPONSE));
+                    dividir_cadena(playlists, 256-3-strlen(PLAYLISTS_RESPONSE), PLAYLISTS_RESPONSE, fd);
                     //generar trama con cada subcadena
 
                 }
@@ -232,7 +226,8 @@ void * init_hilos(void* arg){
 
 void create_hilos(){
     pthread_mutex_init(&sum_mutex, NULL);
-    key_t key = ftok("thread.c", 1);
+    int project_id = getpid() % 255;
+    key_t key = ftok("thread.c", project_id);
     int mq_id = msgget(key, IPC_CREAT | 0666);
     if (mq_id == -1) {
         printa(ERR_COLA);

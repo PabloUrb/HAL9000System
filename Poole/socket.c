@@ -70,6 +70,8 @@ void listSongs(int mq_id, int fd, char * header){
             snprintf(msg.header, 60, ERR_TRAMA_HEADER);
         }
         printf("    header: %s\n", msg.header);
+        printf("    fd: %d\n", fd);
+        printf("    fd: %d\n", msg.fd);
     if (msgsnd(mq_id, &msg, (2*sizeof(int))+(60*sizeof(char)), 0) == -1) {
         perror("msgsnd");
     }
@@ -91,12 +93,15 @@ void reciveTramaPoole(char trama[256], int fd, int mq_id){
         printf("    Type: %d\n", type);
         printf("    Header Length: %u\n", header_length);
         printf("    Header: %s\n", header);
+        //printf("    fd: %d\n", fd);
         
         if(strcmp(header, NEW_BOWMAN)==0){
             trama2 = generateTrama(CON_OK, NULL);
         }else if(strcmp(header, LIST_SONGS)==0){
+            printf("    List Songs\n");
             listSongs(mq_id, fd, LIST_SONGS);
         }else if(strcmp(header, LIST_PLAYLISTS)==0){
+            printf("    List Playlists\n");
             listSongs(mq_id, fd, LIST_PLAYLISTS);
         }else if(strcmp(header, EXIT)==0){
             trama2 = generateTrama(CON_OK, NULL);
@@ -209,14 +214,18 @@ void launch_Poole(ConfigPoole *configPoole){
 	char buf[256];
 	struct sockaddr_in srv_addr;
 	struct sockaddr_in cli_addr;
+    int project_id = getpid() % 255;
 
-    key_t key = ftok("thread.c", 1);
+    key_t key = ftok("thread.c", project_id);
     int mq_id = msgget(key, IPC_CREAT | 0666);
     if (mq_id == -1) {
         printF(ERR_COLA);
         exit(EXIT_FAILURE);
     }
-	
+    struct sigaction sa;
+	sa.sa_handler = intHandler2;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
 
 	listen_sock = socket(AF_INET, SOCK_STREAM, 0);
 

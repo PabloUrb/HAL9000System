@@ -1,5 +1,6 @@
 #ifndef _thread_h_
 #define _thread_h_
+#define  _GNU_SOURCE
 
 #include "poole.h"
 #include "../tools.h"

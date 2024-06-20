@@ -5,6 +5,7 @@
 ConfigBowman *configBowman;
 
 void intHandler(){
+    printf("\n\nSaliendo del programa\n");
     freeAllMemBowman(configBowman);
     raise(SIGKILL);
 }

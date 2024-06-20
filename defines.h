@@ -5,7 +5,6 @@
 #define WAITING_CONNECTIONS "Waiting for connections..."
 #define ERR_INVALID_INPUT "ERROR: Input invalid\n"
 #define SIGINT1 "SIGINT received\n"
-#define ERR_INPUT "ERROR: Input invalid\n"
 #define SONGS "songs"
 #define PLAYLIST "playlist"
 #define ERR_FLAG "ERROR: Flag invalid\n"
@@ -18,9 +17,13 @@
 #define BACKLOG         200
 #define NI_MAXHOST      1025
 #define NI_MAXSERV      32
-#define NI_THREADS      2
+#define NI_THREADS      1
 
 #define printF(x) write(1, x, strlen(x))
+
+//Bowman
+#define SERVER_DOWN "El servidor ha cerrado la conexión\n"
+#define ERR_READ "Error fent el read\n"   
 
 //Poole
 #define CONNECTED   "Connected to HAL 9000 System, ready to listen to Bowmans petitions\n"
