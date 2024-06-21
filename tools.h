@@ -17,6 +17,16 @@
 #include <sys/socket.h>
 #include <dirent.h>
 
+typedef struct {
+    char *nombre;
+} Cancion;
+
+// Estructura para representar una playlist
+typedef struct {
+    char *nombre;
+    Cancion *canciones;
+    int num_canciones;
+} Playlist;
 
 typedef struct{
     char *ipServerPoole;
@@ -73,5 +83,6 @@ void freeAllMemPoole(ConfigPoole * config);
 ConfigPoole *llegirFitxerPoole(char * fileConfig);
 void freeAllMemDiscovery(ConfigDiscovery * config);
 ConfigDiscovery *llegirFitxerDiscovery(char * fileConfig);
+int contains(const char *cadena_principal, const char *subcadena);
 
 #endif

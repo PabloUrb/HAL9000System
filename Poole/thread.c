@@ -2,80 +2,89 @@
 extern ConfigPoole * configPoole;
 pthread_mutex_t sum_mutex;
 
-unsigned char* generateTrama2(char * header, int fd, char * songs){
-    unsigned char* trama = (unsigned char*)malloc(sizeof(unsigned char)*256);
-    trama[0] = 0x02;
+unsigned char* generateTrama2(char * header, int fd, char * data, int total_tramas, int num_trama) {
+    unsigned char* trama = (unsigned char*)malloc(sizeof(unsigned char) * 256);
+    memset(trama, 0, 256);  // Rellenar con ceros inicialmente
+
+    trama[0] = 0x02;  // Type
     uint16_t size = strlen(header);
-    trama[1] = (size >> (size*1)) & 0xff;
-    trama[2] = (size >> (size*0)) & 0xff;
-    strcpy((char*) &trama[3], header);
-    if(strcmp(header, SONGS_RESPONSE)==0){
-        char * data = (char*)malloc(sizeof(char)*256-3-size);
-        strcpy(data, songs);
-        int sizeData = strlen(data);
-        memcpy(&trama[3+size], data, sizeData);
-        bzero(&trama[3+size+sizeData], 256-3-size-sizeData);
-        
-        printF("\nTrama enviada\n");
-        printf("Type: %d\n", trama[0]);
-        printf("Header Length: %d%d\n", trama[1], trama[2]);
-        printf("Header: %s\n", &trama[3]);
-        printf("Data: %s\n", &trama[3+size]);
-    }else if(strcmp(header, PLAYLISTS_RESPONSE)==0){
-        char * data = (char*)malloc(sizeof(char)*256-3-size);
-        replace_char(songs, ',', '&');
-        replace_char(songs, '\n', '#');
-        strcpy(data, songs);
-        int sizeData = strlen(data);
-        memcpy(&trama[3+size], data, sizeData);
-        bzero(&trama[3+size+sizeData], 256-3-size-sizeData);
-        
-        printF("\nTrama enviada\n");
-        printf("Type: %d\n", trama[0]);
-        printf("Header Length: %d%d\n", trama[1], trama[2]);
-        printf("Header: %s\n", &trama[3]);
-        printf("Data: %s\n", &trama[3+size]);
+    trama[1] = (size >> 8) & 0xff;  // Header Length (high byte)
+    trama[2] = size & 0xff;         // Header Length (low byte)
 
+    strcpy((char*)&trama[3], header);
+    int header_length = 3 + size;
+
+    // Añadir el número total de tramas y el delimitador '$'
+    char total_tramas_str[7];  // Ampliado a 7 para asegurar que hay espacio para el '\0'
+    snprintf(total_tramas_str, sizeof(total_tramas_str), "%05d$", total_tramas);
+    strcpy((char*)&trama[header_length], total_tramas_str);
+    int total_tramas_length = strlen(total_tramas_str);
+    int data_offset = header_length + total_tramas_length;
+
+    int data_length = strlen(data);
+    int available_space = 256 - data_offset - 4;  // 4 bytes for current_trama and terminator
+
+    if (data_length > available_space) {
+        data_length = available_space;
     }
-    
 
-    if(write(fd, trama, 256)<0){
+    memcpy(&trama[data_offset], data, data_length);
+
+    // Añadir el número de trama actual
+    trama[252] = (num_trama >> 8) & 0xff;
+    trama[253] = num_trama & 0xff;
+
+    printF("\nTrama enviada\n");
+    printf("Type: %d\n", trama[0]);
+    printf("Header Length: %d%d\n", trama[1], trama[2]);
+    printf("Header: %s\n", &trama[3]);
+    printf("Total Tramas: %s\n", total_tramas_str);
+    printf("Data: %.*s\n", data_length, &trama[data_offset]);
+    printf("Numero de Trama: %d\n", num_trama);
+    printf("trama[252] : %d\n", trama[252]);
+
+    if (write(fd, trama, 256) < 0) {
         perror(ERR_SEND);
-    }else{
+    } else {
         printa("trama enviada\n");
     }
-    
-    
-    
-    return trama;
+
     free(trama);
+    return trama;
 }
 
-char * leer_canciones(){
+char * leer_canciones() {
     DIR *d;
     struct dirent *dir;
-    char * songs;
+    char *songs = NULL;
     int contador = 0;
-    char*buff = malloc(200 * sizeof(char));
+    char* buff = malloc(200 * sizeof(char));
     sprintf(buff, "./music%s/songs/", configPoole->nom_carpeta);
     d = opendir(buff);
+    
     if (d) {
         while ((dir = readdir(d)) != NULL) {
+            // Filtrar los nombres . y ..
+            if (strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0) {
+                continue;
+            }
+            
             int size = strlen(dir->d_name);
-            if(contador==0){
-                songs = (char*)malloc(sizeof(char)*(size+1));
+            if (contador == 0) {
+                songs = (char*)malloc(sizeof(char) * (size + 2)); // +2 for '&' and null terminator
                 strcpy(songs, dir->d_name);
                 strcat(songs, "&");
-            }else{
-                songs = (char*)realloc(songs, sizeof(char*)*(size+1));
+            } else {
+                songs = (char*)realloc(songs, sizeof(char) * (strlen(songs) + size + 2));
                 strcat(songs, dir->d_name);
                 strcat(songs, "&");
             }
             contador++;
         }
-    closedir(d);
-    free(buff);
+        closedir(d);
     }
+    
+    free(buff);
     return songs;
 }
 char * leerCSV(){
@@ -125,9 +134,15 @@ char * leerCSV(){
     return playlists;
     free(playlists);
 }
-void dividir_cadena(char * cadena, int tamano, char * header, int fd){
+
+void dividir_cadena(char * cadena, int tamano, char * header, int fd) {
     int cadena_len = strlen(cadena);
-    int num_paquetes = (cadena_len + tamano - 1) / tamano; // Calcula el número de paquetes necesarios
+    int overhead = 4;  // 4 bytes for current_trama
+    char total_tramas_str[7];  // Ampliado a 7 para asegurar que hay espacio para el '\0'
+    snprintf(total_tramas_str, sizeof(total_tramas_str), "%05d$", 0);  // Total tramas length is 6 including the '$'
+    int total_tramas_length = strlen(total_tramas_str);
+    int effective_tamano = tamano - overhead - total_tramas_length;
+    int num_paquetes = (cadena_len + effective_tamano - 1) / effective_tamano;  // Calcula el número de paquetes necesarios
 
     // Asignar memoria para el array de paquetes
     char **paquetes = (char **)malloc(num_paquetes * sizeof(char *));
@@ -137,7 +152,7 @@ void dividir_cadena(char * cadena, int tamano, char * header, int fd){
     }
 
     for (int i = 0; i < num_paquetes; ++i) {
-        paquetes[i] = (char *)malloc((tamano + 1) * sizeof(char)); // +1 para el terminador nulo
+        paquetes[i] = (char *)malloc((effective_tamano + 1) * sizeof(char));  // +1 para el terminador nulo
         if (paquetes[i] == NULL) {
             perror("Error al asignar memoria para un paquete");
             // Liberar la memoria asignada hasta ahora
@@ -149,10 +164,12 @@ void dividir_cadena(char * cadena, int tamano, char * header, int fd){
         }
 
         // Copiar la parte correspondiente de la cadena al paquete
-        strncpy(paquetes[i], cadena + i * tamano, tamano);
-        paquetes[i][tamano] = '\0'; // Asegurarse de que el paquete está null-terminated
-        generateTrama2(header, fd, paquetes[i]);
+        strncpy(paquetes[i], cadena + i * effective_tamano, effective_tamano);
+        paquetes[i][effective_tamano] = '\0';  // Asegurarse de que el paquete está null-terminated
+        generateTrama2(header, fd, paquetes[i], num_paquetes, i + 1);
+        free(paquetes[i]);
     }
+    free(paquetes);
 }
 long random_long(long min, long max) {
     if (min > max) {
@@ -164,7 +181,6 @@ long random_long(long min, long max) {
     // Generar un número aleatorio en el rango [min, max]
     return min + (rand() % (max - min + 1));
 }
-
 void * init_hilos(void* arg){
     printa("Hilo iniciado\n");
     int mq_id = *((int *)arg);
@@ -193,9 +209,10 @@ void * init_hilos(void* arg){
                 songs = leer_canciones();
                 //Si el tamano de la cadena es menor que el tamano que tiene que ocupar en la trama
                 if(strlen(songs)<(256-3-strlen(SONGS_RESPONSE))){
-                    generateTrama2(SONGS_RESPONSE, fd, songs);
+                    generateTrama2(SONGS_RESPONSE, fd, songs, 1, 1);
                 }else{
                     //TODO generar varias tramas
+                    dividir_cadena(songs, 256-3-strlen(SONGS_RESPONSE), SONGS_RESPONSE, fd);
                 }
             }if(strcmp(m2.header, LIST_PLAYLISTS)==0){
                 playlists = leerCSV();
@@ -204,7 +221,7 @@ void * init_hilos(void* arg){
                 printf("%s\n", playlists);
                 //Si el tamano de la cadena es menor que el tamano que tiene que ocupar en la trama
                 if(strlen(playlists)<(256-3-strlen(PLAYLISTS_RESPONSE))){
-                    generateTrama2(PLAYLISTS_RESPONSE, fd, playlists);
+                    generateTrama2(PLAYLISTS_RESPONSE, fd, playlists, 1, 1);
                 }else{
                     //TODO generar varias tramas
                     //dividir la cadena en varias subcadenas de 256-3-strlen(PLAYLISTS_RESPONSE)

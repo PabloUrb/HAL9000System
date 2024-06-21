@@ -72,5 +72,6 @@
 #define DISCONECT_BOWMAN "DISCONECTB"
 #define OK "OK\n"
 #define KO "KO\n"
+#define DATA_START_MARKER '$' 
 
 #endif

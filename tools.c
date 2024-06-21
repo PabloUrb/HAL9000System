@@ -91,6 +91,14 @@ char* replace_char(char* str, char find, char replace){
     }
     return str;
 }
+int contains(const char *cadena_principal, const char *subcadena) {
+    // Usar la función strstr para buscar la subcadena en la cadena principal
+    if (strstr(cadena_principal, subcadena) != NULL) {
+        return 0; // Coincide: retorna 0
+    } else {
+        return 1; // No coincide: retorna 1
+    }
+}
 
 int prepareData(char * input, char option[MAX_INPUT]){
     int n_espais = 0;

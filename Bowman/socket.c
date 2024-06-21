@@ -329,6 +329,9 @@ int create_connection(ConfigBowman * configBowman, int flag){
                             /*if(reciveTrama(socketFD)!=1){
                                 cont_ERR_RECIVE++;
                             }*/
+                        }else if(strcmp(option, DOWNLOAD) == 0 && n_espais >= 1){            //DOWNLOAD
+                            printa("\nEntra en Download\n");
+
                         }else{
                             perror(ERR_INVALID_INPUT);
                             break;
